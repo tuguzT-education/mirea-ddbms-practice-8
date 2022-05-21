@@ -5,7 +5,7 @@ package io.github.tuguzt.ddbms.practice8.docker
 import org.testcontainers.containers.DockerComposeContainer
 import java.io.File
 
-const val identifier = "ddbms8"
+const val identifier = "ddbms-practice-8"
 
 fun createDockerComposeContainer(): DockerComposeContainer<*> =
     DockerComposeContainer(identifier, File("src/main/resources/docker-compose.yml"))
