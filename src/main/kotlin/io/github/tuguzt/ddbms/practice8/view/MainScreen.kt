@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 
 @Composable
 @Preview
-fun App() {
+fun MainScreen() {
     var text by remember { mutableStateOf("Hello, World!") }
 
     MaterialTheme {
