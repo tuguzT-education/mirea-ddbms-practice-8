@@ -17,13 +17,13 @@ fun ExposedDropdownMenu(
     items: List<String>,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onElementSelected: (String?) -> Unit,
+    onItemSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colors.surface,
 ) {
     var selectedText by remember {
         val selection = items.firstOrNull()
-        onElementSelected(selection)
+        onItemSelected(selection)
         mutableStateOf(selection ?: "Nothing to select")
     }
 
@@ -58,7 +58,7 @@ fun ExposedDropdownMenu(
                         onClick = {
                             if (selectedText != it) {
                                 selectedText = it
-                                onElementSelected(selectedText)
+                                onItemSelected(selectedText)
                             }
                             onExpandedChange(false)
                         },
@@ -79,7 +79,7 @@ private fun ExposedDropdownMenuPreview() {
             items = listOf("Hello World"),
             expanded = true,
             onExpandedChange = {},
-            onElementSelected = {},
+            onItemSelected = {},
             modifier = Modifier.requiredWidth(256.dp),
         )
     }

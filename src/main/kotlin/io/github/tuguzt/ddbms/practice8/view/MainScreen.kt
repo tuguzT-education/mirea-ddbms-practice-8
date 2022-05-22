@@ -5,6 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import io.github.tuguzt.ddbms.practice8.model.Mock
 import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
 import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
 @Composable
@@ -26,6 +29,7 @@ fun MainScreen(
     val collection = remember { database.getCollection<Mock>("mock") }
     var searchQuery by remember { mutableStateOf("") }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
     Surface(
@@ -46,7 +50,14 @@ fun MainScreen(
                         items = suggestions,
                         expanded = expanded,
                         onExpandedChange = { expanded = it },
-                        onElementSelected = { println(it) },
+                        onItemSelected = { item ->
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Item \"${item.orEmpty()}\" was chosen",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                        },
                         modifier = Modifier
                             .width(128.dp)
                             .clip(RoundedCornerShape(4.dp)),
@@ -56,6 +67,15 @@ fun MainScreen(
                     SearchBar(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
+                        onSubmit = {
+                            focusManager.clearFocus()
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Searching by query \"$searchQuery\"",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                        },
                         singleLine = true,
                         modifier = Modifier
                             .weight(1f)
@@ -63,6 +83,8 @@ fun MainScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
+            SnackbarHost(hostState = snackbarHostState)
         }
     }
 }

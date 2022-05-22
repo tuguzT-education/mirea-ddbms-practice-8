@@ -19,15 +19,15 @@ repositories {
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("org.slf4j:slf4j-simple:1.7.36")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
     implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.6.0")
-    implementation("org.testcontainers:testcontainers:1.16.3")
+    implementation("org.testcontainers:testcontainers:1.17.1")
     implementation("com.github.tkuenneth:nativeparameterstoreaccess:0.1.2")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.6.1")
 }
 
 tasks.test {
@@ -35,7 +35,10 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+    }
 }
 
 compose.desktop {
