@@ -79,7 +79,7 @@ fun ApplicationScope.Practice8Application() {
 private fun ConnectingWindow(onCloseRequest: () -> Unit) {
     Window(
         onCloseRequest = onCloseRequest,
-        title = "$title - Connecting...",
+        title = "$title — Connecting…",
         resizable = false,
         state = rememberWindowState(
             position = WindowPosition.Aligned(Alignment.Center),

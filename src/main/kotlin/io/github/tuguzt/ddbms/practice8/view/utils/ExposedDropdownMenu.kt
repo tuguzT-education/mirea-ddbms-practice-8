@@ -14,10 +14,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
+import java.util.*
 
 @Composable
 fun ExposedDropdownMenu(
     items: List<String>,
+    dropdownType: String,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onItemSelected: (String?) -> Unit,
@@ -43,7 +45,6 @@ fun ExposedDropdownMenu(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = selectedText,
-                    style = MaterialTheme.typography.button,
                     modifier = Modifier.weight(1f),
                 )
 
@@ -58,16 +59,18 @@ fun ExposedDropdownMenu(
                 onDismissRequest = { onExpandedChange(false) },
             ) {
                 items.forEach {
-                    DropdownMenuItem(
-                        onClick = {
-                            if (selectedText != it) {
-                                selectedText = it
-                                onItemSelected(selectedText)
-                            }
-                            onExpandedChange(false)
-                        },
-                    ) {
-                        Text(text = it)
+                    Tooltip(text = "\"${it.lowercase(Locale.getDefault())}\" $dropdownType") {
+                        DropdownMenuItem(
+                            onClick = {
+                                if (selectedText != it) {
+                                    selectedText = it
+                                    onItemSelected(selectedText)
+                                }
+                                onExpandedChange(false)
+                            },
+                        ) {
+                            Text(text = it)
+                        }
                     }
                 }
             }
@@ -81,7 +84,8 @@ private fun ExposedDropdownMenuPreview() {
     Practice8Theme {
         ExposedDropdownMenu(
             items = listOf("Hello World"),
-            expanded = true,
+            dropdownType = "example",
+            expanded = false,
             onExpandedChange = {},
             onItemSelected = {},
             modifier = Modifier.requiredWidth(256.dp),

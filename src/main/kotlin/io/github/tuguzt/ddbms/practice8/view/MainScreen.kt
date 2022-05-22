@@ -12,8 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.model.Mock
-import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
-import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
+import io.github.tuguzt.ddbms.practice8.view.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -52,59 +51,73 @@ fun MainScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        ExposedDropdownMenu(
-                            items = suggestions,
-                            expanded = expanded,
-                            onExpandedChange = { expanded = it },
-                            onItemSelected = { item ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Item \"${item.orEmpty()}\" was chosen",
-                                        actionLabel = "Dismiss",
-                                    )
-                                }
-                            },
+                        Tooltip(
+                            text = "Collection name",
                             modifier = Modifier
                                 .width(128.dp)
                                 .heightIn(min = 56.dp),
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(4.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        SearchBar(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(4.dp)),
-                            onSubmit = {
-                                focusManager.clearFocus()
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Searching by query \"$searchQuery\"",
-                                        actionLabel = "Dismiss",
-                                    )
-                                }
-                            },
-                            singleLine = true,
-                            colors = TextFieldDefaults.textFieldColors(
-                                placeholderColor = contentColor.copy(alpha = ContentAlpha.medium),
-                                focusedIndicatorColor = contentColor.copy(alpha = ContentAlpha.medium),
-                                unfocusedIndicatorColor = contentColor.copy(alpha = ContentAlpha.disabled),
-                                leadingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
-                                trailingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
-                                focusedLabelColor = contentColor.copy(alpha = ContentAlpha.medium),
-                                unfocusedLabelColor = contentColor.copy(alpha = ContentAlpha.high),
-                            ),
-                        )
+                        ) {
+                            ExposedDropdownMenu(
+                                items = suggestions,
+                                dropdownType = "collection",
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it },
+                                onItemSelected = { item ->
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Item \"${item.orEmpty()}\" was chosen",
+                                            actionLabel = "Dismiss",
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(128.dp)
+                                    .heightIn(min = 56.dp),
+                                color = MaterialTheme.colors.onSurface
+                                    .copy(alpha = TextFieldDefaults.BackgroundOpacity),
+                                shape = RoundedCornerShape(4.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Tooltip(text = "Search bar", modifier = Modifier.fillMaxWidth()) {
+                            SearchBar(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(4.dp)),
+                                onSubmit = {
+                                    focusManager.clearFocus()
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Searching by query \"$searchQuery\"",
+                                            actionLabel = "Dismiss",
+                                        )
+                                    }
+                                },
+                                singleLine = true,
+                                colors = TextFieldDefaults.textFieldColors(
+                                    placeholderColor = contentColor.copy(alpha = ContentAlpha.medium),
+                                    focusedIndicatorColor = contentColor.copy(alpha = ContentAlpha.medium),
+                                    unfocusedIndicatorColor = contentColor.copy(alpha = ContentAlpha.disabled),
+                                    leadingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
+                                    trailingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
+                                    focusedLabelColor = contentColor.copy(alpha = ContentAlpha.medium),
+                                    unfocusedLabelColor = contentColor.copy(alpha = ContentAlpha.high),
+                                ),
+                            )
+                        }
                     }
                 }
             }
         },
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {}
+        Column(modifier = Modifier.padding(padding)) {
+            CollectionTablePreview()
+        }
     }
 }
