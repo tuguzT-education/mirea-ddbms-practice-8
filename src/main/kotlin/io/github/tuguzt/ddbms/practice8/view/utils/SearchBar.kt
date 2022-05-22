@@ -19,6 +19,7 @@ fun SearchBar(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
     singleLine: Boolean = false,
+    colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
 ) {
     TextField(
         value = value,
@@ -35,6 +36,7 @@ fun SearchBar(
                 }
             },
         placeholder = { Text("Search") },
+        colors = colors,
         singleLine = singleLine,
         trailingIcon = {
             IconButton(onClick = onSubmit) {

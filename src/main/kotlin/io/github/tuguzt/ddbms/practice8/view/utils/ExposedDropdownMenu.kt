@@ -7,7 +7,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
@@ -20,6 +23,7 @@ fun ExposedDropdownMenu(
     onItemSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colors.surface,
+    shape: Shape = RectangleShape,
 ) {
     var selectedText by remember {
         val selection = items.firstOrNull()
@@ -27,12 +31,12 @@ fun ExposedDropdownMenu(
         mutableStateOf(selection ?: "Nothing to select")
     }
 
-    Surface(
-        modifier = modifier.clickable { onExpandedChange(!expanded) },
-        color = color,
-    ) {
+    Surface(color = color, shape = shape) {
         Column {
             Row(
+                modifier = modifier
+                    .clip(shape)
+                    .clickable { onExpandedChange(!expanded) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
