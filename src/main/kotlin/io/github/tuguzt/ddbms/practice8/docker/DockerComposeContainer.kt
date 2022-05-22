@@ -14,7 +14,7 @@ fun createDockerComposeContainer(): DockerComposeContainer<*> =
         .withMongoService(index = 2)
         .withLocalCompose(true)
 
-private fun DockerComposeContainer<*>.mongoService(index: Int): DockerComposeService =
+private fun <T : DockerComposeContainer<T>> DockerComposeContainer<T>.mongoService(index: Int): DockerComposeService =
     exposedServices[index].run {
         DockerComposeService(
             host = getServiceHost(host, port),
@@ -22,11 +22,14 @@ private fun DockerComposeContainer<*>.mongoService(index: Int): DockerComposeSer
         )
     }
 
-fun DockerComposeContainer<*>.mongo1Service(): DockerComposeService = mongoService(index = 0)
+fun <T : DockerComposeContainer<T>> DockerComposeContainer<T>.mongo1Service(): DockerComposeService =
+    mongoService(index = 0)
 
-fun DockerComposeContainer<*>.mongo2Service(): DockerComposeService = mongoService(index = 1)
+fun <T : DockerComposeContainer<T>> DockerComposeContainer<T>.mongo2Service(): DockerComposeService =
+    mongoService(index = 1)
 
-fun DockerComposeContainer<*>.mongo3Service(): DockerComposeService = mongoService(index = 2)
+fun <T : DockerComposeContainer<T>> DockerComposeContainer<T>.mongo3Service(): DockerComposeService =
+    mongoService(index = 2)
 
 data class DockerComposeService(val host: String, val port: Int) {
     override fun toString(): String = "$host:$port"
@@ -38,5 +41,5 @@ private val exposedServices = listOf(
     DockerComposeService("mongo3", 30003),
 )
 
-private fun DockerComposeContainer<*>.withMongoService(index: Int): DockerComposeContainer<*> =
+private fun <T : DockerComposeContainer<T>> DockerComposeContainer<T>.withMongoService(index: Int): DockerComposeContainer<T> =
     exposedServices[index].run { withExposedService(host, port) }

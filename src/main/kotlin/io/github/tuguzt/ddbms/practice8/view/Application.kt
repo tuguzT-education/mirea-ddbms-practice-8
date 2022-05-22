@@ -1,6 +1,5 @@
 package io.github.tuguzt.ddbms.practice8.view
 
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
@@ -10,6 +9,8 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import io.github.tuguzt.ddbms.practice8.docker.createDockerComposeContainer
 import io.github.tuguzt.ddbms.practice8.docker.mongo1Service
+import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
+import io.github.tuguzt.ddbms.practice8.view.theme.isSystemInDarkTheme
 import kotlinx.coroutines.*
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.coroutine
@@ -24,11 +25,23 @@ fun ApplicationScope.Practice8Application() {
     val coroutineScope = rememberCoroutineScope()
 
     var isConnecting by remember { mutableStateOf(true) }
+    var isInDarkTheme by remember { mutableStateOf(false) }
+
     var container: DockerComposeContainer<*>? by remember { mutableStateOf(null) }
     var containerStartJob: Job? by remember { mutableStateOf(null) }
     var client: CoroutineClient? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
+        isInDarkTheme = isSystemInDarkTheme()
+        launch {
+            while (isActive) {
+                val newMode = isSystemInDarkTheme()
+                if (isInDarkTheme != newMode) {
+                    isInDarkTheme = newMode
+                }
+                delay(1000)
+            }
+        }
         containerStartJob = withContext(Dispatchers.IO) {
             container = createDockerComposeContainer()
             launch {
@@ -41,7 +54,7 @@ fun ApplicationScope.Practice8Application() {
         isConnecting = false
     }
 
-    MaterialTheme {
+    Practice8Theme(darkTheme = isInDarkTheme) {
         when {
             isConnecting -> ConnectingWindow(onCloseRequest = ::exitApplication)
             else -> MainWindow(

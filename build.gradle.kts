@@ -24,6 +24,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
     implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.6.0")
     implementation("org.testcontainers:testcontainers:1.16.3")
+    implementation("com.github.tkuenneth:nativeparameterstoreaccess:0.1.2")
 
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.0")
