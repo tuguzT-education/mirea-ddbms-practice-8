@@ -1,19 +1,21 @@
 package io.github.tuguzt.ddbms.practice8.view
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.model.Mock
+import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
+import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
 @Composable
@@ -22,30 +24,43 @@ fun MainScreen(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
     val collection = remember { database.getCollection<Mock>("mock") }
-    var list by remember { mutableStateOf(listOf<Mock>()) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    suspend fun update() {
-        list = collection.find().toList()
-    }
+    val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(Unit) { update() }
-
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        collection.insertOne(Mock(name = "Hello World"))
-                        update()
-                    }
-                }
-            ) {
-                Text(text = "Add new mock")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyColumn(contentPadding = PaddingValues(16.dp)) {
-                itemsIndexed(items = list) { index, mock ->
-                    Text(text = "${mock.name} $index")
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = focusManager::clearFocus,
+            ),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+            Surface(modifier = Modifier.padding(top = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    var expanded by remember { mutableStateOf(false) }
+                    val suggestions = listOf("Item1", "Item2", "Item3")
+                    ExposedDropdownMenu(
+                        items = suggestions,
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it },
+                        onElementSelected = { println(it) },
+                        modifier = Modifier
+                            .width(128.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    SearchBar(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(4.dp)),
+                    )
                 }
             }
         }

@@ -25,14 +25,13 @@ fun ApplicationScope.Practice8Application() {
     val coroutineScope = rememberCoroutineScope()
 
     var isConnecting by remember { mutableStateOf(true) }
-    var isInDarkTheme by remember { mutableStateOf(false) }
+    var isInDarkTheme by remember { mutableStateOf(isSystemInDarkTheme()) }
 
     var container: DockerComposeContainer<*>? by remember { mutableStateOf(null) }
     var containerStartJob: Job? by remember { mutableStateOf(null) }
     var client: CoroutineClient? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        isInDarkTheme = isSystemInDarkTheme()
         launch {
             while (isActive) {
                 val newMode = isSystemInDarkTheme()
