@@ -36,8 +36,8 @@ private fun TableRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .heightIn(if (isHeader) 56.dp else 52.dp)
-            .onPointerEvent(PointerEventType.Enter) { active = true }
-            .onPointerEvent(PointerEventType.Exit) { active = false }
+            .onPointerEvent(PointerEventType.Enter) { if (!isHeader) active = true }
+            .onPointerEvent(PointerEventType.Exit) { if (!isHeader) active = false }
             .background(
                 when {
                     isHeader -> MaterialTheme.colors.onSurface.copy(
@@ -58,18 +58,15 @@ private fun TableRow(
                     text = "$text\n",
                     maxLines = 1,
                     fontWeight = FontWeight.SemiBold.takeIf { isHeader },
-                    modifier = modifier
-                        .weight(1f)
-                        .padding(horizontal = 16.dp),
                 )
             }
 
-            if (isHeader) Tooltip(
-                text = text,
-                content = composable,
-                modifier = modifier.weight(1f),
-            )
-            else composable()
+            Box(modifier = Modifier.weight(1f)) {
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    if (isHeader) Tooltip(text = text, content = composable)
+                    else composable()
+                }
+            }
         }
     }
     Divider()
