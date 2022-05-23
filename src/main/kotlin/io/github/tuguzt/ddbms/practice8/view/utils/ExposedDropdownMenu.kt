@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
-import java.util.*
 
 @Composable
 fun ExposedDropdownMenu(
@@ -44,7 +43,7 @@ fun ExposedDropdownMenu(
             ) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = selectedText,
+                    text = selectedText.replaceFirstChar { it.uppercase() },
                     modifier = Modifier.weight(1f),
                 )
 
@@ -58,8 +57,8 @@ fun ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { onExpandedChange(false) },
             ) {
-                items.forEach {
-                    Tooltip(text = "\"${it.lowercase(Locale.getDefault())}\" $dropdownType") {
+                items.forEach { it ->
+                    Tooltip(text = "$dropdownType \"${it.lowercase()}\"") {
                         DropdownMenuItem(
                             onClick = {
                                 if (selectedText != it) {
@@ -69,7 +68,7 @@ fun ExposedDropdownMenu(
                                 onExpandedChange(false)
                             },
                         ) {
-                            Text(text = it)
+                            Text(text = it.replaceFirstChar { it.uppercase() })
                         }
                     }
                 }

@@ -22,12 +22,11 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.util.*
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TableRow(
-    textList: List<String>,
+    contentList: List<String>,
     modifier: Modifier = Modifier,
     isHeader: Boolean = false,
 ) {
@@ -45,31 +44,31 @@ private fun TableRow(
                         alpha = TextFieldDefaults.BackgroundOpacity
                     )
                     active -> MaterialTheme.colors.onSurface.copy(
-                        alpha = TextFieldDefaults.BackgroundOpacity / 2
+                        alpha = TextFieldDefaults.BackgroundOpacity / 3
                     )
                     else -> Color.Transparent
                 }
             )
     ) {
-        for (text in textList) {
+        for (content in contentList) {
+            val text = content.replaceFirstChar { it.uppercase() }
+
             val composable: @Composable () -> Unit = {
                 Text(
-                    text = text,
+                    text = "$text\n",
+                    maxLines = 1,
                     fontWeight = FontWeight.SemiBold.takeIf { isHeader },
                     modifier = modifier
-                        .weight(1f / textList.size)
+                        .weight(1f)
                         .padding(horizontal = 16.dp),
                 )
             }
 
-            if (isHeader) {
-                Tooltip(
-                    text = "\"${text.lowercase(Locale.getDefault())}\" field",
-                    modifier = modifier
-                        .weight(1f / textList.size),
-                    content = composable,
-                )
-            }
+            if (isHeader) Tooltip(
+                text = text,
+                content = composable,
+                modifier = modifier.weight(1f),
+            )
             else composable()
         }
     }
@@ -81,33 +80,34 @@ fun CollectionTable(
     columns: List<String>,
     rows: List<List<String>>,
 ) {
-    SelectionContainer {
-        val shape = RoundedCornerShape(4.dp)
-        val borderColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .border(.5f.dp, borderColor, shape)
-                .clip(shape)
-        ) {
-            TableRow(columns, isHeader = true)
+    val shape = RoundedCornerShape(4.dp)
+    val borderColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .border(.5f.dp, borderColor, shape)
+            .clip(shape)
+    ) {
+        TableRow(isHeader = true, contentList = columns)
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                val state = rememberLazyListState()
+        Box(modifier = Modifier.fillMaxSize()) {
+            val state = rememberLazyListState()
 
+            SelectionContainer {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                 ) {
-                    items(rows) { TableRow(it) }
+                    items(rows) {
+                        TableRow(contentList = it)
+                    }
                 }
-
-                VerticalScrollbar(
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState = state),
-                )
             }
+            VerticalScrollbar(
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = state),
+            )
         }
     }
 }
@@ -118,7 +118,7 @@ fun CollectionTablePreview() {
     val tableData = (1..100).mapIndexed { index, _ -> index to "Item $index" }
 
     CollectionTable(
-        columns = listOf("Column 1", "Column 2"),
+        columns = listOf("column 1", "column 2"),
         rows = mutableListOf<List<String>>().apply {
             for (data in tableData)
                 add(data.first, listOf(data.first.toString(), data.second))

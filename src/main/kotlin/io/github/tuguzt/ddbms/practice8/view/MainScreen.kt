@@ -48,11 +48,11 @@ fun MainScreen(
                         )
                     }
                 },
-                dropdownItems = List(5) { "Item ${it + 1}" },
+                dropdownItems = List(5) { "item ${it + 1}" },
                 onDropdownItemSelected = { item ->
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            message = "Item \"${item.orEmpty()}\" was chosen",
+                            message = "Collection \"${item.orEmpty()}\" was chosen",
                             actionLabel = "Dismiss",
                         )
                     }
@@ -87,7 +87,7 @@ private fun TopBar(
                 Tooltip(text = "Collection name", modifier = Modifier.width(128.dp).heightIn(min = 56.dp)) {
                     ExposedDropdownMenu(
                         items = dropdownItems,
-                        dropdownType = "collection",
+                        dropdownType = "Collection",
                         expanded = dropdownExpanded,
                         onExpandedChange = { dropdownExpanded = it },
                         onItemSelected = onDropdownItemSelected,
