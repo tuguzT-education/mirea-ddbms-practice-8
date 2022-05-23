@@ -8,36 +8,26 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TableRow(
+    isHeader: Boolean,
     contentList: List<String>,
     modifier: Modifier = Modifier,
-    isHeader: Boolean = false,
+    active: Boolean = false,
 ) {
-    var active by remember { mutableStateOf(false) }
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .heightIn(if (isHeader) 56.dp else 52.dp)
-            .onPointerEvent(PointerEventType.Enter) { if (!isHeader) active = true }
-            .onPointerEvent(PointerEventType.Exit) { if (!isHeader) active = false }
             .background(
                 when {
                     isHeader -> MaterialTheme.colors.onSurface.copy(
@@ -54,17 +44,18 @@ private fun TableRow(
             val text = content.replaceFirstChar { it.uppercase() }
 
             val composable: @Composable () -> Unit = {
-                Text(
+                OneLineText(
                     text = "$text\n",
-                    maxLines = 1,
                     fontWeight = FontWeight.SemiBold.takeIf { isHeader },
                 )
             }
 
             Box(modifier = Modifier.weight(1f)) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    if (isHeader) Tooltip(text = text, content = composable)
-                    else composable()
+                    when (isHeader) {
+                        true -> Tooltip(text = text) { composable() }
+                        false -> composable()
+                    }
                 }
             }
         }
@@ -73,14 +64,58 @@ private fun TableRow(
 }
 
 @Composable
+fun ContentRow(
+    contentList: List<String>,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    SelectionContainer {
+        TableRow(
+            isHeader = false,
+            active = expanded,
+            contentList = contentList,
+            modifier = modifier
+                .clickable (
+                    onClick = { expanded = !expanded }
+                )
+        )
+    }
+
+    var renderCount by remember { mutableStateOf(0) }
+    listOf(renderCount, renderCount - 1).forEach { renderId ->
+        val isActive = renderId == renderCount
+        key(renderId) {
+            CursorDropdownMenu(
+                expanded = expanded && isActive,
+                onDismissRequest = {
+                    if (isActive) {
+                        renderCount += 1
+                        expanded = false
+                    }
+                },
+            ) {
+                DropdownMenuItem(onClick = {}) {
+                    OneLineText(text = "Update")
+                }
+                DropdownMenuItem(onClick = {}) {
+                    OneLineText(text = "Delete")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun CollectionTable(
     columns: List<String>,
     rows: List<List<String>>,
+    modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(4.dp)
     val borderColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity)
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
             .border(.5f.dp, borderColor, shape)
@@ -91,15 +126,11 @@ fun CollectionTable(
         Box(modifier = Modifier.fillMaxSize()) {
             val state = rememberLazyListState()
 
-            SelectionContainer {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = state,
-                ) {
-                    items(rows) {
-                        TableRow(contentList = it)
-                    }
-                }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+            ) {
+                items(rows) { ContentRow(it) }
             }
             VerticalScrollbar(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),

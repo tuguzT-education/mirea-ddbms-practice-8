@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +31,7 @@ fun Tooltip(
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.shadow(4.dp),
             ) {
-                Text(
+                OneLineText(
                     text = text,
                     color = textColor,
                     modifier = Modifier

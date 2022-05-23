@@ -42,9 +42,9 @@ fun ExposedDropdownMenu(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = selectedText.replaceFirstChar { it.uppercase() },
+                OneLineText(
                     modifier = Modifier.weight(1f),
+                    text = selectedText.replaceFirstChar { it.uppercase() },
                 )
 
                 val (painter, contentDescription) = when {
@@ -68,7 +68,7 @@ fun ExposedDropdownMenu(
                                 onExpandedChange(false)
                             },
                         ) {
-                            Text(text = it.replaceFirstChar { it.uppercase() })
+                            OneLineText(text = it.replaceFirstChar { it.uppercase() })
                         }
                     }
                 }

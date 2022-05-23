@@ -35,7 +35,7 @@ fun SearchBar(
                     else -> false
                 }
             },
-        placeholder = { Text("Search") },
+        placeholder = { OneLineText(text = "Search") },
         colors = colors,
         singleLine = singleLine,
         trailingIcon = {
