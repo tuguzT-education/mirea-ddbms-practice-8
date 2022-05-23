@@ -57,9 +57,9 @@ fun ApplicationScope.Practice8Application() {
         when {
             isConnecting -> ConnectingWindow(onCloseRequest = ::exitApplication)
             else -> MainWindow(
-                onCloseRequest = ::exitApplication,
                 client = requireNotNull(client),
                 coroutineScope = coroutineScope,
+                onCloseRequest = ::exitApplication,
             )
         }
     }
@@ -78,9 +78,9 @@ fun ApplicationScope.Practice8Application() {
 @Composable
 private fun ConnectingWindow(onCloseRequest: () -> Unit) {
     Window(
-        onCloseRequest = onCloseRequest,
         title = "$title — Connecting…",
         resizable = false,
+        onCloseRequest = onCloseRequest,
         state = rememberWindowState(
             position = WindowPosition.Aligned(Alignment.Center),
             width = 400.dp,
@@ -100,6 +100,9 @@ private fun MainWindow(
     val database = remember(client) { client.getDatabase("ddbms-practice-8") }
 
     Window(onCloseRequest = onCloseRequest, title = title) {
-        MainScreen(database, coroutineScope)
+        MainScreen(
+            database = database,
+            coroutineScope = coroutineScope,
+        )
     }
 }

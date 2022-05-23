@@ -40,9 +40,9 @@ fun Tooltip(
                 )
             }
         },
+        content = content,
         modifier = modifier,
         delayMillis = 500, // milliseconds
         tooltipPlacement = TooltipPlacement.CursorPoint(alignment = Alignment.BottomEnd),
-        content = content,
     )
 }

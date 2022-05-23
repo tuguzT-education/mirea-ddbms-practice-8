@@ -14,8 +14,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
+
+@Composable
+fun RowScope.TableCell(
+    isHeader: Boolean,
+    contentText: String,
+) {
+    val text = when (isHeader) {
+        false -> contentText
+        true -> contentText.replaceFirstChar { it.uppercase() }
+    }
+
+    val composable: @Composable () -> Unit = {
+        OneLineText(
+            text = "$text\n",
+            fontWeight = FontWeight.SemiBold.takeIf { isHeader },
+        )
+    }
+
+    Box(modifier = Modifier.weight(1f)) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            when (isHeader) {
+                true -> Tooltip(text = text) { composable() }
+                false -> SelectionContainer { composable() }
+            }
+        }
+    }
+}
 
 @Composable
 private fun TableRow(
@@ -40,25 +71,8 @@ private fun TableRow(
                 }
             )
     ) {
-        for (content in contentList) {
-            val text = content.replaceFirstChar { it.uppercase() }
-
-            val composable: @Composable () -> Unit = {
-                OneLineText(
-                    text = "$text\n",
-                    fontWeight = FontWeight.SemiBold.takeIf { isHeader },
-                )
-            }
-
-            Box(modifier = Modifier.weight(1f)) {
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    when (isHeader) {
-                        true -> Tooltip(text = text) { composable() }
-                        false -> composable()
-                    }
-                }
-            }
-        }
+        for (content in contentList)
+            TableCell(isHeader = isHeader, contentText = content)
     }
     Divider()
 }
@@ -70,14 +84,12 @@ fun ContentRow(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    SelectionContainer {
-        TableRow(
-            isHeader = false,
-            active = expanded,
-            contentList = contentList,
-            modifier = modifier.clickable(onClick = { expanded = !expanded })
-        )
-    }
+    TableRow(
+        active = expanded,
+        isHeader = false,
+        contentList = contentList,
+        modifier = modifier.clickable(onClick = { expanded = !expanded })
+    )
 
     var renderCount by remember { mutableStateOf(0) }
     listOf(renderCount, renderCount - 1).forEach { renderId ->
@@ -121,32 +133,68 @@ fun CollectionTable(
         TableRow(isHeader = true, contentList = columns)
 
         Box(modifier = Modifier.fillMaxSize()) {
-            val state = rememberLazyListState()
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = state,
-            ) {
-                items(rows) { ContentRow(it) }
+            if (rows.flatten().isEmpty()) {
+                EmptyTableBanner()
             }
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState = state),
-            )
+            else {
+                val state = rememberLazyListState()
+
+                LazyColumn(
+                    state = state,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    items(rows) { ContentRow(it) }
+                }
+                VerticalScrollbar(
+                    adapter = rememberScrollbarAdapter(scrollState = state),
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight(),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun EmptyTableBanner() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Icon(
+            painter = painterResource("icons/document.svg"),
+            contentDescription = "There is no data in this table",
+            modifier = Modifier.size(64.dp),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OneLineText(
+            text = "Table is empty",
+            fontSize = MaterialTheme.typography.h6.fontSize,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            maxLines = 2,
+            textAlign = TextAlign.Center,
+            overflow = TextOverflow.Ellipsis,
+            text = "There is no data in this table yet." +
+                    "\nYou can add new document at any time!"
+        )
     }
 }
 
 @Preview
 @Composable
 fun CollectionTablePreview() {
-    val tableData = (1..100).mapIndexed { index, _ -> index to "Item $index" }
+    val tableData = (1..100).mapIndexed { index, _ -> index to "item $index" }
 
-    CollectionTable(
-        columns = listOf("column 1", "column 2"),
-        rows = mutableListOf<List<String>>().apply {
-            for (data in tableData)
-                add(data.first, listOf(data.first.toString(), data.second))
-        }
-    )
+    Practice8Theme {
+        CollectionTable(
+            columns = listOf("column 1", "column 2"),
+            rows = tableData.map { (index, name) -> listOf(index.toString(), name) },
+        )
+    }
 }

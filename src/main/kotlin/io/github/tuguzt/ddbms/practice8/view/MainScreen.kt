@@ -25,6 +25,7 @@ import kotlin.reflect.full.memberProperties
 @Composable
 fun MainScreen(
     database: CoroutineDatabase,
+    modifier: Modifier = Modifier,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
     val userCollection = remember { database.getCollection<MockUser>("mockUser") }
@@ -40,8 +41,9 @@ fun MainScreen(
 
     val userCollectionFieldNames = remember { MockUser::class.memberProperties.map { it.name } }
     val dataCollectionFieldNames = remember { MockData::class.memberProperties.map { it.name } }
-    var fieldNames by remember { mutableStateOf(userCollectionFieldNames) }
+
     var tableRows by remember { mutableStateOf(listOf<List<String>>()) }
+    var fieldNames by remember { mutableStateOf(userCollectionFieldNames) }
 
     suspend fun updateTableRows() {
         when (selectedCollection) {
@@ -65,8 +67,8 @@ fun MainScreen(
 
     Scaffold(
         modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
             indication = null,
+            interactionSource = remember { MutableInteractionSource() },
             onClick = focusManager::clearFocus,
         ),
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -75,7 +77,7 @@ fun MainScreen(
                 onSubmit = { searchText ->
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            message = "Searching by \"$searchText\"",
+                            message = "Searching by \"$searchText\"...",
                             actionLabel = "Dismiss",
                         )
                     }
@@ -99,17 +101,16 @@ fun MainScreen(
         floatingActionButton = {
             var isDialogOpen by remember { mutableStateOf(false) }
 
-            ExtendedFloatingActionButton(
-                text = { OneLineText(text = "ADD") },
-                icon = {
-                    Icon(
+            Tooltip(text = "Insert into collection") {
+                ExtendedFloatingActionButton(
+                    text = { OneLineText(text = "ADD") },
+                    icon = { Icon(
                         painter = painterResource("icons/add.svg"),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-                },
-                onClick = { isDialogOpen = true },
-            )
+                        contentDescription = "Insert into collection",
+                    ) },
+                    onClick = { isDialogOpen = true },
+                )
+            }
 
             if (isDialogOpen) when (selectedCollection) {
                 MockUser::class.simpleName -> NewMockUserDialog(
@@ -141,7 +142,7 @@ fun MainScreen(
             }
         },
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Column(modifier = modifier.padding(padding)) {
             CollectionTable(columns = fieldNames, rows = tableRows)
         }
     }
@@ -154,6 +155,7 @@ private fun TopBar(
     onCollectionNameSelected: (String?) -> Unit,
     fieldNames: List<String>,
     onFieldNameSelected: (String?) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         color = MaterialTheme.colors.primarySurface,
@@ -161,39 +163,25 @@ private fun TopBar(
     ) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             var searchText by remember { mutableStateOf("") }
-            var collectionsExpanded by remember { mutableStateOf(false) }
-            var fieldsExpanded by remember { mutableStateOf(false) }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val dropdownColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity)
-
                 Tooltip(text = "Collection name") {
-                    ExposedDropdownMenu(
+                    TopExposedDropdownMenu(
                         items = collectionNames,
                         dropdownType = "Collection",
-                        expanded = collectionsExpanded,
-                        onExpandedChange = { collectionsExpanded = it },
                         onItemSelected = onCollectionNameSelected,
-                        modifier = Modifier.widthIn(max = 192.dp).heightIn(min = 56.dp),
-                        color = dropdownColor,
-                        shape = RoundedCornerShape(4.dp),
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Tooltip(text = "Field name") {
-                    ExposedDropdownMenu(
+                    TopExposedDropdownMenu(
                         items = fieldNames,
                         dropdownType = "Field",
-                        expanded = fieldsExpanded,
-                        onExpandedChange = { fieldsExpanded = it },
                         onItemSelected = onFieldNameSelected,
-                        modifier = Modifier.widthIn(max = 192.dp).heightIn(min = 56.dp),
-                        color = dropdownColor,
-                        shape = RoundedCornerShape(4.dp),
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -201,47 +189,14 @@ private fun TopBar(
                 Tooltip(text = "Search bar") {
                     TopSearchBar(
                         value = searchText,
-                        onValueChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
                         onSubmit = { onSubmit(searchText) },
+                        onValueChange = { searchText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(4.dp)),
                     )
                 }
             }
         }
     }
-}
-
-@Composable
-private fun TopSearchBar(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSubmit: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    SearchBar(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        onSubmit = onSubmit,
-        singleLine = true,
-        colors = run {
-            val color = MaterialTheme.colors.primarySurface
-            val contentColor = contentColorFor(color)
-            val focusColor = when {
-                MaterialTheme.colors.isLight -> contentColor
-                else -> MaterialTheme.colors.primary
-            }
-
-            TextFieldDefaults.textFieldColors(
-                placeholderColor = contentColor.copy(alpha = ContentAlpha.medium),
-                cursorColor = focusColor,
-                focusedIndicatorColor = focusColor.copy(alpha = ContentAlpha.medium),
-                unfocusedIndicatorColor = focusColor.copy(alpha = ContentAlpha.disabled),
-                leadingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
-                trailingIconColor = contentColor.copy(alpha = TextFieldDefaults.IconOpacity),
-                focusedLabelColor = focusColor.copy(alpha = ContentAlpha.medium),
-                unfocusedLabelColor = focusColor.copy(alpha = ContentAlpha.high),
-            )
-        },
-    )
 }

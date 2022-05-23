@@ -17,11 +17,11 @@ import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
 @Composable
 fun ExposedDropdownMenu(
+    expanded: Boolean,
     items: List<String>,
     dropdownType: String,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
     onItemSelected: (String?) -> Unit,
+    onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colors.surface,
     shape: Shape = RectangleShape,
@@ -35,23 +35,27 @@ fun ExposedDropdownMenu(
     Surface(color = color, shape = shape) {
         Column {
             Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = modifier
                     .clip(shape)
                     .clickable { onExpandedChange(!expanded) },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Spacer(modifier = Modifier.width(12.dp))
                 OneLineText(
-                    modifier = Modifier.weight(1f),
                     text = selectedText.replaceFirstChar { it.uppercase() },
+                    modifier = Modifier.weight(1f),
                 )
 
                 val (painter, contentDescription) = when {
                     expanded -> painterResource("icons/arrow_drop_up.svg") to "Expand menu"
                     else -> painterResource("icons/arrow_drop_down.svg") to "Hide menu"
                 }
-                Icon(painter, contentDescription)
+                Icon(
+                    painter = painter,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.size(48.dp),
+                )
             }
             DropdownMenu(
                 expanded = expanded,
@@ -83,10 +87,10 @@ private fun ExposedDropdownMenuPreview() {
     Practice8Theme {
         ExposedDropdownMenu(
             items = listOf("Hello World"),
-            dropdownType = "example",
             expanded = false,
-            onExpandedChange = {},
+            dropdownType = "example",
             onItemSelected = {},
+            onExpandedChange = {},
             modifier = Modifier.requiredWidth(256.dp),
         )
     }

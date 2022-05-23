@@ -64,8 +64,8 @@ fun Practice8Theme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
 
     MaterialTheme(
         colors = colors,
-        typography = Typography,
-        shapes = Shapes,
         content = content,
+        shapes = Shapes,
+        typography = Typography,
     )
 }

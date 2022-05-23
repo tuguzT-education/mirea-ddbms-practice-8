@@ -14,7 +14,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
-import io.github.tuguzt.ddbms.practice8.view.utils.OneLineText
+import io.github.tuguzt.ddbms.practice8.view.utils.ChoiceButtonRow
+import io.github.tuguzt.ddbms.practice8.view.utils.SingleLineTextField
+import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
 
 @Composable
 fun NewMockDataDialog(
@@ -22,9 +24,9 @@ fun NewMockDataDialog(
     onCreateData: (MockData) -> Unit,
 ) {
     Dialog(
-        onCloseRequest = onCloseRequest,
         title = "Add new mock data",
         state = rememberDialogState(height = 400.dp),
+        onCloseRequest = onCloseRequest,
     ) {
         Content(onCloseRequest = onCloseRequest, onCreateData = onCreateData)
     }
@@ -49,8 +51,8 @@ private fun Content(
     val focusManager = LocalFocusManager.current
     Surface(
         modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
             indication = null,
+            interactionSource = remember { MutableInteractionSource() },
             onClick = focusManager::clearFocus,
         ),
     ) {
@@ -58,50 +60,41 @@ private fun Content(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            OutlinedTextField(
-                value = data1,
-                onValueChange = { data1 = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Data 1") },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = data2,
-                onValueChange = { data2 = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Data 2") },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = data3,
-                onValueChange = { data3 = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Data 3") },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Button(
-                    onClick = addAndClose,
-                    enabled = data1.toIntOrNull() != null && data2.isNotBlank() && data3.toLongOrNull() != null,
-                    content = { OneLineText("Add") },
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = onCloseRequest,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error),
-                    content = { OneLineText(text = "Cancel") },
+            Tooltip(text = "Input field for \"data 1\"") {
+                SingleLineTextField(
+                    text = "Data 1",
+                    value = data1,
+                    onValueChange = { data1 = it },
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Tooltip(text = "Input field for \"data 2\"") {
+                SingleLineTextField(
+                    text = "Data 2",
+                    value = data2,
+                    onValueChange = { data2 = it },
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Tooltip(text = "Input field for \"data 3\"") {
+                SingleLineTextField(
+                    text = "Data 3",
+                    value = data3,
+                    onValueChange = { data3 = it },
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ChoiceButtonRow(
+                onClickCancel = onCloseRequest,
+                onClickConfirm = addAndClose,
+                enabledConfirm = data1.toIntOrNull() != null
+                        && data2.isNotBlank()
+                        && data3.toLongOrNull() != null,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
