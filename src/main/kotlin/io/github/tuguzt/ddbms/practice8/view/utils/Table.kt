@@ -38,6 +38,12 @@ fun RowScope.TableCell(
         )
     }
 
+    // todo "change Text to TextField on double click
+    //  to edit if TableCell is not in header row"
+
+    // todo "add sorting (in both orders) button on hover
+    //  if TableCell is in header row"
+
     Box(modifier = Modifier.weight(1f)) {
         Box(modifier = Modifier.padding(horizontal = 16.dp)) {
             when (isHeader) {
@@ -88,13 +94,18 @@ fun ContentRow(
         active = expanded,
         isHeader = false,
         contentList = contentList,
-        modifier = modifier.clickable(onClick = { expanded = !expanded })
+        modifier = modifier.clickable() {
+            // todo "open Dialog with data from row to edit or delete document"
+            expanded = !expanded
+        }
     )
 
     var renderCount by remember { mutableStateOf(0) }
     listOf(renderCount, renderCount - 1).forEach { renderId ->
         val isActive = renderId == renderCount
         key(renderId) {
+            // todo "somehow get rid of weird "copy/paste" context menu elements,
+            //  use this code as an example for custom context menu"
             CursorDropdownMenu(
                 expanded = expanded && isActive,
                 onDismissRequest = {
@@ -131,6 +142,8 @@ fun CollectionTable(
             .clip(shape)
     ) {
         TableRow(isHeader = true, contentList = columns)
+        // todo "add LinearProgressIndicator on data loading
+        //  (it's not immediate, which is seen on app startup"
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (rows.flatten().isEmpty()) {

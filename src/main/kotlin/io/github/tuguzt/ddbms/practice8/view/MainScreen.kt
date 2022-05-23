@@ -163,6 +163,8 @@ private fun TopBar(
     ) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             var searchText by remember { mutableStateOf("") }
+            // todo "pass search query into MongoDB
+            //  and change table content appropriately"
 
             Row(
                 modifier = modifier.fillMaxWidth().padding(16.dp),
