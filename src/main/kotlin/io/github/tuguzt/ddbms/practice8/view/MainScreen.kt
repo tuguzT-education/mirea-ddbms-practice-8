@@ -10,22 +10,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import io.github.tuguzt.ddbms.practice8.model.Mock
-import io.github.tuguzt.ddbms.practice8.view.utils.CollectionTablePreview
-import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
-import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
-import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
+import io.github.tuguzt.ddbms.practice8.model.MockData
+import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.view.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import kotlin.reflect.full.memberProperties
 
 @Composable
 fun MainScreen(
     database: CoroutineDatabase,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
-    val collection = remember { database.getCollection<Mock>("mock") }
+    val userCollection = remember { database.getCollection<MockUser>("mockUser") }
+    val dataCollection = remember { database.getCollection<MockData>("mockData") }
+
+    val collectionNames = remember {
+        listOf(
+            requireNotNull(MockUser::class.simpleName),
+            requireNotNull(MockData::class.simpleName),
+        )
+    }
+    val userCollectionFieldNames = remember { MockUser::class.memberProperties.map { it.name } }
+    val dataCollectionFieldNames = remember { MockData::class.memberProperties.map { it.name } }
+    var fieldNames by remember { mutableStateOf(userCollectionFieldNames) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
@@ -48,11 +59,38 @@ fun MainScreen(
                         )
                     }
                 },
-                dropdownItems = List(5) { "item ${it + 1}" },
-                onDropdownItemSelected = { item ->
+                collectionNames = collectionNames,
+                onCollectionNameSelected = { name ->
+                    when (name) {
+                        MockUser::class.simpleName -> fieldNames = userCollectionFieldNames
+                        MockData::class.simpleName -> fieldNames = dataCollectionFieldNames
+                    }
+                },
+                fieldNames = fieldNames,
+                onFieldNameSelected = { name ->
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            message = "Collection \"${item.orEmpty()}\" was chosen",
+                            message = "Field \"${name.orEmpty()}\" was chosen",
+                            actionLabel = "Dismiss",
+                        )
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { OneLineText(text = "ADD") },
+                icon = {
+                    Icon(
+                        painter = painterResource("icons/add.svg"),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                },
+                onClick = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "FAB clicked",
                             actionLabel = "Dismiss",
                         )
                     }
@@ -61,7 +99,14 @@ fun MainScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            CollectionTablePreview()
+            CollectionTable(
+                columns = fieldNames,
+                rows = remember(fieldNames) {
+                    List(size = 50) {
+                        fieldNames.map { name -> "$name ${it + 1}" }
+                    }
+                },
+            )
         }
     }
 }
@@ -69,8 +114,10 @@ fun MainScreen(
 @Composable
 private fun TopBar(
     onSubmit: (String) -> Unit,
-    dropdownItems: List<String>,
-    onDropdownItemSelected: (String?) -> Unit,
+    collectionNames: List<String>,
+    onCollectionNameSelected: (String?) -> Unit,
+    fieldNames: List<String>,
+    onFieldNameSelected: (String?) -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colors.primarySurface,
@@ -78,26 +125,44 @@ private fun TopBar(
     ) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             var searchText by remember { mutableStateOf("") }
-            var dropdownExpanded by remember { mutableStateOf(false) }
+            var collectionsExpanded by remember { mutableStateOf(false) }
+            var fieldsExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Tooltip(text = "Collection name", modifier = Modifier.width(128.dp).heightIn(min = 56.dp)) {
+                val dropdownColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity)
+
+                Tooltip(text = "Collection name") {
                     ExposedDropdownMenu(
-                        items = dropdownItems,
+                        items = collectionNames,
                         dropdownType = "Collection",
-                        expanded = dropdownExpanded,
-                        onExpandedChange = { dropdownExpanded = it },
-                        onItemSelected = onDropdownItemSelected,
-                        modifier = Modifier.width(128.dp).heightIn(min = 56.dp),
-                        color = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.BackgroundOpacity),
+                        expanded = collectionsExpanded,
+                        onExpandedChange = { collectionsExpanded = it },
+                        onItemSelected = onCollectionNameSelected,
+                        modifier = Modifier.widthIn(max = 192.dp).heightIn(min = 56.dp),
+                        color = dropdownColor,
                         shape = RoundedCornerShape(4.dp),
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Tooltip(text = "Search bar", modifier = Modifier.fillMaxWidth()) {
+
+                Tooltip(text = "Field name") {
+                    ExposedDropdownMenu(
+                        items = fieldNames,
+                        dropdownType = "Field",
+                        expanded = fieldsExpanded,
+                        onExpandedChange = { fieldsExpanded = it },
+                        onItemSelected = onFieldNameSelected,
+                        modifier = Modifier.widthIn(max = 192.dp).heightIn(min = 56.dp),
+                        color = dropdownColor,
+                        shape = RoundedCornerShape(4.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Tooltip(text = "Search bar") {
                     TopSearchBar(
                         value = searchText,
                         onValueChange = { searchText = it },

@@ -26,7 +26,7 @@ fun ExposedDropdownMenu(
     color: Color = MaterialTheme.colors.surface,
     shape: Shape = RectangleShape,
 ) {
-    var selectedText by remember {
+    var selectedText by remember(items) {
         val selection = items.firstOrNull()
         onItemSelected(selection)
         mutableStateOf(selection ?: "Nothing to select")

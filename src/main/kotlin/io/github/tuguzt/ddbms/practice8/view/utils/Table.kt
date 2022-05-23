@@ -75,10 +75,7 @@ fun ContentRow(
             isHeader = false,
             active = expanded,
             contentList = contentList,
-            modifier = modifier
-                .clickable (
-                    onClick = { expanded = !expanded }
-                )
+            modifier = modifier.clickable(onClick = { expanded = !expanded })
         )
     }
 
