@@ -14,6 +14,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockDataDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -34,9 +36,29 @@ fun MainScreen(
             requireNotNull(MockData::class.simpleName),
         )
     }
+    var selectedCollection by remember { mutableStateOf(collectionNames.first()) }
+
     val userCollectionFieldNames = remember { MockUser::class.memberProperties.map { it.name } }
     val dataCollectionFieldNames = remember { MockData::class.memberProperties.map { it.name } }
     var fieldNames by remember { mutableStateOf(userCollectionFieldNames) }
+    var tableRows by remember { mutableStateOf(listOf<List<String>>()) }
+
+    suspend fun updateTableRows() {
+        when (selectedCollection) {
+            MockUser::class.simpleName -> {
+                fieldNames = userCollectionFieldNames
+                tableRows = userCollection.find().toList().map {
+                    listOf(it.name, it.age.toString())
+                }
+            }
+            MockData::class.simpleName -> {
+                fieldNames = dataCollectionFieldNames
+                tableRows = dataCollection.find().toList().map {
+                    listOf(it.data1.toString(), it.data2, it.data3.toString())
+                }
+            }
+        }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
@@ -51,7 +73,6 @@ fun MainScreen(
         topBar = {
             TopBar(
                 onSubmit = { searchText ->
-                    focusManager.clearFocus()
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             message = "Searching by \"$searchText\"",
@@ -61,10 +82,8 @@ fun MainScreen(
                 },
                 collectionNames = collectionNames,
                 onCollectionNameSelected = { name ->
-                    when (name) {
-                        MockUser::class.simpleName -> fieldNames = userCollectionFieldNames
-                        MockData::class.simpleName -> fieldNames = dataCollectionFieldNames
-                    }
+                    selectedCollection = requireNotNull(name)
+                    coroutineScope.launch { updateTableRows() }
                 },
                 fieldNames = fieldNames,
                 onFieldNameSelected = { name ->
@@ -78,6 +97,8 @@ fun MainScreen(
             )
         },
         floatingActionButton = {
+            var isDialogOpen by remember { mutableStateOf(false) }
+
             ExtendedFloatingActionButton(
                 text = { OneLineText(text = "ADD") },
                 icon = {
@@ -87,26 +108,41 @@ fun MainScreen(
                         modifier = Modifier.size(24.dp),
                     )
                 },
-                onClick = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "FAB clicked",
-                            actionLabel = "Dismiss",
-                        )
-                    }
-                },
+                onClick = { isDialogOpen = true },
             )
+
+            if (isDialogOpen) when (selectedCollection) {
+                MockUser::class.simpleName -> NewMockUserDialog(
+                    onCloseRequest = { isDialogOpen = false },
+                    onCreateUser = { user ->
+                        coroutineScope.launch {
+                            userCollection.insertOne(user)
+                            updateTableRows()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock user successfully added",
+                                actionLabel = "Dismiss",
+                            )
+                        }
+                    },
+                )
+                MockData::class.simpleName -> NewMockDataDialog(
+                    onCloseRequest = { isDialogOpen = false },
+                    onCreateData = { data ->
+                        coroutineScope.launch {
+                            dataCollection.insertOne(data)
+                            updateTableRows()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock data successfully added",
+                                actionLabel = "Dismiss",
+                            )
+                        }
+                    }
+                )
+            }
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            CollectionTable(
-                columns = fieldNames,
-                rows = remember(fieldNames) {
-                    List(size = 50) {
-                        fieldNames.map { name -> "$name ${it + 1}" }
-                    }
-                },
-            )
+            CollectionTable(columns = fieldNames, rows = tableRows)
         }
     }
 }

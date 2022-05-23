@@ -97,8 +97,9 @@ private fun MainWindow(
     client: CoroutineClient,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
+    val database = remember(client) { client.getDatabase("ddbms-practice-8") }
+
     Window(onCloseRequest = onCloseRequest, title = title) {
-        val database = client.getDatabase("ddbms-practice-8")
         MainScreen(database, coroutineScope)
     }
 }
