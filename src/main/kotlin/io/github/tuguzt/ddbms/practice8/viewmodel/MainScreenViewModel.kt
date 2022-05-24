@@ -1,17 +1,16 @@
 package io.github.tuguzt.ddbms.practice8.viewmodel
 
-import com.mongodb.client.model.Filters
+import io.github.tuguzt.ddbms.practice8.escapeRegex
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.regex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.regex
 import org.litote.kmongo.textIndex
-import kotlin.reflect.KProperty
 
 class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClient) : ViewModel(viewModelScope) {
     private val database = client.getDatabase("ddbms-practice-8")
@@ -124,16 +123,3 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
 private fun MockUser.toTableRow(): List<String> = listOf(name, "$age")
 
 private fun MockData.toTableRow(): List<String> = listOf("$data1", data2, "$data3")
-
-private infix fun KProperty<Number>.regex(regex: String): Bson = Filters.where("/$regex/.test(this.$name)")
-
-private fun Char.escapeRegex(): String = when (this) {
-    '*' -> "\\*"
-    '(' -> "\\("
-    ')' -> "\\)"
-    '\\' -> "\\\\"
-    '/' -> "\\/"
-    '$' -> "\\$"
-    '|' -> "\\|"
-    else -> toString()
-}

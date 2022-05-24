@@ -12,10 +12,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
-import io.github.tuguzt.ddbms.practice8.view.utils.ChoiceButtonRow
-import io.github.tuguzt.ddbms.practice8.view.utils.SingleLineTextField
-import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
 
 @Composable
 fun NewMockUserDialog(
@@ -58,7 +56,7 @@ private fun Content(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Tooltip(text = "Input field for \"name\"") {
-                SingleLineTextField(
+                OutlinedSingleLineTextField(
                     text = "Name",
                     value = name,
                     onValueChange = { name = it },
@@ -67,7 +65,7 @@ private fun Content(
             Spacer(modifier = Modifier.height(16.dp))
 
             Tooltip(text = "Input field for \"age\"") {
-                SingleLineTextField(
+                OutlinedSingleLineTextField(
                     text = "Age",
                     value = age,
                     onValueChange = { age = it },

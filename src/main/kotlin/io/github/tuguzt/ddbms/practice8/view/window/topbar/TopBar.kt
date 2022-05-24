@@ -1,4 +1,4 @@
-package io.github.tuguzt.ddbms.practice8.view
+package io.github.tuguzt.ddbms.practice8.view.window.topbar
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,9 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
-import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
-import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 
 @Composable
 fun TopBar(

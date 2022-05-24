@@ -1,4 +1,4 @@
-package io.github.tuguzt.ddbms.practice8.view.utils
+package io.github.tuguzt.ddbms.practice8.view.window.topbar
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
@@ -13,6 +13,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import io.github.tuguzt.ddbms.practice8.capitalize
+import io.github.tuguzt.ddbms.practice8.view.OneLineText
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
 @Composable
@@ -43,7 +46,7 @@ fun ExposedDropdownMenu(
             ) {
                 Spacer(modifier = Modifier.width(12.dp))
                 OneLineText(
-                    text = selectedText.replaceFirstChar { it.uppercase() },
+                    text = selectedText.capitalize(),
                     modifier = Modifier.weight(1f),
                 )
 
@@ -61,7 +64,7 @@ fun ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { onExpandedChange(false) },
             ) {
-                items.forEach { it ->
+                items.forEach {
                     Tooltip(text = "$dropdownType \"${it.lowercase()}\"") {
                         DropdownMenuItem(
                             onClick = {
@@ -72,7 +75,7 @@ fun ExposedDropdownMenu(
                                 onExpandedChange(false)
                             },
                         ) {
-                            OneLineText(text = it.replaceFirstChar { it.uppercase() })
+                            OneLineText(text = it.capitalize())
                         }
                     }
                 }

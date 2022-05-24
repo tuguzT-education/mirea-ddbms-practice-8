@@ -1,4 +1,4 @@
-package io.github.tuguzt.ddbms.practice8.view
+package io.github.tuguzt.ddbms.practice8.view.window
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,19 +9,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Window
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.view.OneLineText
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.utils.CollectionTable
-import io.github.tuguzt.ddbms.practice8.view.utils.OneLineText
-import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
+import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
+import io.github.tuguzt.ddbms.practice8.view.title
+import io.github.tuguzt.ddbms.practice8.view.viewModel
+import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(
+fun MainWindow(
+    onCloseRequest: () -> Unit,
+    viewModel: MainScreenViewModel = viewModel(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+) {
+    Window(onCloseRequest = onCloseRequest, title = title) {
+        MainScreen(viewModel = viewModel, coroutineScope = coroutineScope)
+    }
+}
+
+@Composable
+private fun MainScreen(
     viewModel: MainScreenViewModel = viewModel(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
@@ -108,7 +123,7 @@ fun MainScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            CollectionTable(columns = fieldNames, rows = tableRows)
+            DataTable(columns = fieldNames, rows = tableRows)
         }
     }
 }

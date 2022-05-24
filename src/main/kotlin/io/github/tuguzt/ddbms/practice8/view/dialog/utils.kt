@@ -1,38 +1,33 @@
-package io.github.tuguzt.ddbms.practice8.view.utils
+package io.github.tuguzt.ddbms.practice8.view.dialog
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import io.github.tuguzt.ddbms.practice8.view.OneLineText
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 
 @Composable
-fun OneLineText(
-    text: String,
+fun OutlinedSingleLineTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-    fontSize: TextUnit = TextUnit.Unspecified,
-    fontWeight: FontWeight? = null,
+    text: String = "",
 ) {
-    Text(
-        text = text,
-        color = color,
-        fontSize = fontSize,
-        fontWeight = fontWeight,
-        modifier = modifier,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
+    OutlinedTextField(
+        value = value,
+        singleLine = true,
+        onValueChange = onValueChange,
+        label = { OneLineText(text = text) },
+        modifier = modifier.fillMaxWidth(),
     )
 }
 
 @Composable
-fun IconButton(
+fun IconTextButton(
     onClick: () -> Unit,
     text: String,
     resourcePath: String,
@@ -69,22 +64,6 @@ fun IconButton(
 }
 
 @Composable
-fun SingleLineTextField(
-    text: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    OutlinedTextField(
-        value = value,
-        singleLine = true,
-        onValueChange = onValueChange,
-        label = { OneLineText(text = text) },
-        modifier = modifier.fillMaxWidth(),
-    )
-}
-
-@Composable
 fun ChoiceButtonRow(
     onClickCancel: () -> Unit,
     onClickConfirm: () -> Unit,
@@ -97,7 +76,7 @@ fun ChoiceButtonRow(
         modifier = modifier.fillMaxWidth(),
     ) {
         Tooltip(text = "Confirm adding document ...") {
-            IconButton(
+            IconTextButton(
                 text = "Confirm",
                 onClick = onClickConfirm,
                 enabled = enabledConfirm,
@@ -108,7 +87,7 @@ fun ChoiceButtonRow(
         Spacer(modifier = Modifier.width(16.dp))
 
         Tooltip(text = "Cancel adding document ...") {
-            IconButton(
+            IconTextButton(
                 text = "Cancel",
                 onClick = onClickCancel,
                 colors = ButtonDefaults.buttonColors(

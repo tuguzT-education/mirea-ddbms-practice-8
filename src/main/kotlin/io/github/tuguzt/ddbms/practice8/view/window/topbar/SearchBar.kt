@@ -1,4 +1,4 @@
-package io.github.tuguzt.ddbms.practice8.view.utils
+package io.github.tuguzt.ddbms.practice8.view.window.topbar
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.heightIn
@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import io.github.tuguzt.ddbms.practice8.view.OneLineText
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable

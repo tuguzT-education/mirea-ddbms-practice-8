@@ -13,10 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
 import io.github.tuguzt.ddbms.practice8.model.MockData
+import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
-import io.github.tuguzt.ddbms.practice8.view.utils.ChoiceButtonRow
-import io.github.tuguzt.ddbms.practice8.view.utils.SingleLineTextField
-import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
 
 @Composable
 fun NewMockDataDialog(
@@ -61,7 +59,7 @@ private fun Content(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Tooltip(text = "Input field for \"data 1\"") {
-                SingleLineTextField(
+                OutlinedSingleLineTextField(
                     text = "Data 1",
                     value = data1,
                     onValueChange = { data1 = it },
@@ -70,7 +68,7 @@ private fun Content(
             Spacer(modifier = Modifier.height(16.dp))
 
             Tooltip(text = "Input field for \"data 2\"") {
-                SingleLineTextField(
+                OutlinedSingleLineTextField(
                     text = "Data 2",
                     value = data2,
                     onValueChange = { data2 = it },
@@ -79,7 +77,7 @@ private fun Content(
             Spacer(modifier = Modifier.height(16.dp))
 
             Tooltip(text = "Input field for \"data 3\"") {
-                SingleLineTextField(
+                OutlinedSingleLineTextField(
                     text = "Data 3",
                     value = data3,
                     onValueChange = { data3 = it },
