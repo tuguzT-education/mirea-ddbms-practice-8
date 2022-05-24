@@ -18,26 +18,40 @@ repositories {
 }
 
 dependencies {
+    // Compose for Desktop, UI
     implementation(compose.desktop.currentOs)
-    implementation("org.slf4j:slf4j-simple:1.7.36")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
-    implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.6.0")
-    implementation("org.testcontainers:testcontainers:1.17.1")
     implementation("com.github.tkuenneth:nativeparameterstoreaccess:0.1.2")
 
+    // KotlinX
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+
+    // Logging
+    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
+
+    // Docker Compose, KMongo
+    implementation("org.testcontainers:testcontainers:1.17.1")
+    implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.6.0")
+
+    // Koin
+    implementation("io.insert-koin:koin-core:3.2.0")
+    implementation("io.insert-koin:koin-logger-slf4j:3.2.0")
+
+    // Testing
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.6.1")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+tasks {
+    test {
+        useJUnitPlatform()
+    }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+    withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "11"
+            freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+        }
     }
 }
 

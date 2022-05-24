@@ -94,7 +94,7 @@ fun ContentRow(
         active = expanded,
         isHeader = false,
         contentList = contentList,
-        modifier = modifier.clickable() {
+        modifier = modifier.clickable {
             // todo "open Dialog with data from row to edit or delete document"
             expanded = !expanded
         }
@@ -148,8 +148,7 @@ fun CollectionTable(
         Box(modifier = Modifier.fillMaxSize()) {
             if (rows.flatten().isEmpty()) {
                 EmptyTableBanner()
-            }
-            else {
+            } else {
                 val state = rememberLazyListState()
 
                 LazyColumn(

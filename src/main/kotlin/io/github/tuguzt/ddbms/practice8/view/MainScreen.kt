@@ -16,11 +16,12 @@ import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
 import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.utils.*
+import io.github.tuguzt.ddbms.practice8.view.utils.CollectionTable
+import io.github.tuguzt.ddbms.practice8.view.utils.OneLineText
+import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import kotlin.reflect.full.memberProperties
 
 @Composable
 fun MainScreen(
@@ -28,8 +29,8 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
-    val userCollection = remember { database.getCollection<MockUser>("mockUser") }
-    val dataCollection = remember { database.getCollection<MockData>("mockData") }
+    val userCollection = remember { database.getCollection<MockUser>() }
+    val dataCollection = remember { database.getCollection<MockData>() }
 
     val collectionNames = remember {
         listOf(
@@ -39,8 +40,8 @@ fun MainScreen(
     }
     var selectedCollection by remember { mutableStateOf(collectionNames.first()) }
 
-    val userCollectionFieldNames = remember { MockUser::class.memberProperties.map { it.name } }
-    val dataCollectionFieldNames = remember { MockData::class.memberProperties.map { it.name } }
+    val userCollectionFieldNames = remember { listOf(MockUser::name.name, MockUser::age.name) }
+    val dataCollectionFieldNames = remember { listOf(MockData::data1.name, MockData::data2.name, MockData::data3.name) }
 
     var tableRows by remember { mutableStateOf(listOf<List<String>>()) }
     var fieldNames by remember { mutableStateOf(userCollectionFieldNames) }
@@ -104,10 +105,12 @@ fun MainScreen(
             Tooltip(text = "Insert into collection") {
                 ExtendedFloatingActionButton(
                     text = { OneLineText(text = "ADD") },
-                    icon = { Icon(
-                        painter = painterResource("icons/add.svg"),
-                        contentDescription = "Insert into collection",
-                    ) },
+                    icon = {
+                        Icon(
+                            painter = painterResource("icons/add.svg"),
+                            contentDescription = "Insert into collection",
+                        )
+                    },
                     onClick = { isDialogOpen = true },
                 )
             }
