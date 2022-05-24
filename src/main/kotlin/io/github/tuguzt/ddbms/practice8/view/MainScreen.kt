@@ -42,28 +42,24 @@ fun MainScreen(
         topBar = {
             TopBar(
                 onSubmit = { searchText ->
+                    val message = when {
+                        searchText.isBlank() -> "Nothing to search: all documents are shown"
+                        else -> "Searching by \"$searchText\" completed"
+                    }
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Searching by \"$searchText\"...",
-                            actionLabel = "Dismiss",
-                        )
+                        viewModel.search(searchText)
+                        snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
                     }
                 },
                 collectionNames = viewModel.collectionNames,
                 onCollectionNameSelected = {
                     val name = requireNotNull(it)
-                    coroutineScope.launch {
-                        viewModel.selectCollection(name)
-                    }
+                    coroutineScope.launch { viewModel.selectCollection(name) }
                 },
                 fieldNames = fieldNames,
-                onFieldNameSelected = { name ->
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Field \"${name.orEmpty()}\" was chosen",
-                            actionLabel = "Dismiss",
-                        )
-                    }
+                onFieldNameSelected = {
+                    val name = requireNotNull(it)
+                    coroutineScope.launch { viewModel.selectField(name) }
                 },
             )
         },
