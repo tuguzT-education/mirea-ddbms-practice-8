@@ -9,27 +9,24 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 import io.github.tuguzt.ddbms.practice8.viewmodel.AppViewModel
+import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.litote.kmongo.coroutine.CoroutineClient
 
 const val title = "DDBMS Practice 8"
 
 @Composable
-@Suppress("NAME_SHADOWING")
-fun ApplicationScope.Practice8Application() {
-    val appViewModel by viewModel<AppViewModel>()
-    val darkTheme by appViewModel.darkTheme.collectAsState()
-    val client by appViewModel.client.collectAsState()
+fun ApplicationScope.Practice8Application(viewModel: AppViewModel = viewModel()) {
+    val darkTheme by viewModel.darkTheme.collectAsState()
+    val client by viewModel.client.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
     Practice8Theme(darkTheme = darkTheme) {
-        when (val client = client) {
+        when (client) {
             null -> ConnectingWindow(onCloseRequest = ::exitApplication)
             else -> MainWindow(
-                client = client,
                 coroutineScope = coroutineScope,
                 onCloseRequest = ::exitApplication,
             )
@@ -39,7 +36,7 @@ fun ApplicationScope.Practice8Application() {
     DisposableEffect(Unit) {
         onDispose {
             coroutineScope.launch(Dispatchers.IO) {
-                appViewModel.close()
+                viewModel.close()
             }
         }
     }
@@ -64,15 +61,10 @@ private fun ConnectingWindow(onCloseRequest: () -> Unit) {
 @Composable
 private fun MainWindow(
     onCloseRequest: () -> Unit,
-    client: CoroutineClient,
+    viewModel: MainScreenViewModel = viewModel(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
-    val database = remember(client) { client.getDatabase("ddbms-practice-8") }
-
     Window(onCloseRequest = onCloseRequest, title = title) {
-        MainScreen(
-            database = database,
-            coroutineScope = coroutineScope,
-        )
+        MainScreen(viewModel = viewModel, coroutineScope = coroutineScope)
     }
 }

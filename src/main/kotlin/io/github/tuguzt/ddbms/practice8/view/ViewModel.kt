@@ -6,8 +6,8 @@ import io.github.tuguzt.ddbms.practice8.viewmodel.ViewModel
 import org.koin.mp.KoinPlatformTools
 
 @Composable
-inline fun <reified VM : ViewModel> viewModel(): Lazy<VM> {
+inline fun <reified VM : ViewModel> viewModel(): VM {
     val koinContext = KoinPlatformTools.defaultContext()
     val koin = koinContext.get()
-    return remember(koinContext, koin) { koin.inject() }
+    return remember(koinContext, koin) { koin.get() }
 }

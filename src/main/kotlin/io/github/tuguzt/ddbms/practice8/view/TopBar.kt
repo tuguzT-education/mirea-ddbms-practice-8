@@ -1,17 +1,74 @@
 package io.github.tuguzt.ddbms.practice8.view
 
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.utils.ExposedDropdownMenu
 import io.github.tuguzt.ddbms.practice8.view.utils.SearchBar
+import io.github.tuguzt.ddbms.practice8.view.utils.Tooltip
 
 @Composable
-fun TopExposedDropdownMenu(
+fun TopBar(
+    onSubmit: (String) -> Unit,
+    collectionNames: List<String>,
+    onCollectionNameSelected: (String?) -> Unit,
+    fieldNames: List<String>,
+    onFieldNameSelected: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = MaterialTheme.colors.primarySurface,
+        elevation = AppBarDefaults.TopAppBarElevation,
+    ) {
+        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+            var searchText by remember { mutableStateOf("") }
+            // todo "pass search query into MongoDB
+            //  and change table content appropriately"
+
+            Row(
+                modifier = modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Tooltip(text = "Collection name") {
+                    TopExposedDropdownMenu(
+                        items = collectionNames,
+                        dropdownType = "Collection",
+                        onItemSelected = onCollectionNameSelected,
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Tooltip(text = "Field name") {
+                    TopExposedDropdownMenu(
+                        items = fieldNames,
+                        dropdownType = "Field",
+                        onItemSelected = onFieldNameSelected,
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Tooltip(text = "Search bar") {
+                    TopSearchBar(
+                        value = searchText,
+                        onSubmit = { onSubmit(searchText) },
+                        onValueChange = { searchText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(4.dp)),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopExposedDropdownMenu(
     items: List<String>,
     dropdownType: String,
     onItemSelected: (String?) -> Unit,
@@ -34,7 +91,7 @@ fun TopExposedDropdownMenu(
 }
 
 @Composable
-fun TopSearchBar(
+private fun TopSearchBar(
     value: String,
     onSubmit: () -> Unit,
     onValueChange: (String) -> Unit,
