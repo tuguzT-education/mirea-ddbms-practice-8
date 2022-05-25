@@ -16,28 +16,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
 @Composable
 fun <T> DataTable(
-    modifier: Modifier = Modifier,
     header: TableHeaderScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(4.dp),
     content: TableScope<T>.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(4.dp)
     val borderColor = MaterialTheme.colors.onSurface.copy(0.12f)
+
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
             .border(.5f.dp, borderColor, shape)
             .clip(shape)
     ) {
-        val tableHeaderScope = remember(header) {
-            TableHeaderScopeImpl().apply { header() }
-        }
+        val tableHeaderScope = TableHeaderScopeImpl()
+        tableHeaderScope.header()
         if (tableHeaderScope.isPresent()) {
             Row(
                 modifier = Modifier.heightIn(min = 56.dp).background(borderColor),
@@ -50,15 +49,12 @@ fun <T> DataTable(
         //  (it's not immediate, which is seen on app startup"
 
         var selectedItem: T? by remember { mutableStateOf(null) }
+        val tableScope = TableScopeImpl(
+            selectedItem = selectedItem,
+            onSelectedItemChange = { selectedItem = it },
+        )
+        tableScope.content()
 
-        val tableScope = remember(content) {
-            TableScopeImpl(
-                selectedItem = selectedItem,
-                onSelectedItemChange = { selectedItem = it },
-            ).apply {
-                content()
-            }
-        }
         Box(modifier = Modifier.fillMaxSize()) {
             if (tableScope.isPresent()) {
                 val state = rememberLazyListState()

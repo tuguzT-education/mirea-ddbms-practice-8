@@ -51,20 +51,24 @@ class TableScopeImpl<T>(
             val tableRowScope = TableRowScopeImpl()
             tableRowScope.content()
             if (tableRowScope.isPresent()) {
+                val modifier = kotlin.run {
+                    var modifier = Modifier
+                        .heightIn(min = 52.dp)
+                        .background(
+                            if (selectedItem == item) MaterialTheme.colors.onSurface.copy(alpha = 0.04f)
+                            else Color.Transparent
+                        )
+                    if (onItemSelected != null) {
+                        modifier = modifier.clickable {
+                            onSelectedItemChange(item)
+                            onItemSelected()
+                        }
+                    }
+                    modifier
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .heightIn(min = 52.dp)
-                        .clickable {
-                            onSelectedItemChange(item)
-                            onItemSelected?.invoke()
-                        }
-                        .background(
-                            when (selectedItem) {
-                                item -> MaterialTheme.colors.onSurface.copy(alpha = 0.04f)
-                                else -> Color.Transparent
-                            }
-                        ),
+                    modifier = modifier,
                     content = { tableRowScope.inflate(rowScope = this) },
                 )
                 Divider()

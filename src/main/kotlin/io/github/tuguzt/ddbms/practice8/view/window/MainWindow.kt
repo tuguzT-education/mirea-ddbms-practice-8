@@ -2,14 +2,18 @@ package io.github.tuguzt.ddbms.practice8.view.window
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import io.github.tuguzt.ddbms.practice8.capitalize
+import io.github.tuguzt.ddbms.practice8.model.Identifiable
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
 import io.github.tuguzt.ddbms.practice8.view.OneLineText
@@ -41,9 +45,11 @@ private fun MainScreen(
     viewModel: MainScreenViewModel = viewModel(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
-    val selectedCollectionName by viewModel.selectedCollectionName.collectAsState()
-    val fieldNames by viewModel.fieldNames.collectAsState()
+    val selectedCollection by viewModel.selectedCollectionClass.collectAsState()
+    val fields by viewModel.fields.collectAsState()
     val tableRows by viewModel.tableRows.collectAsState()
+
+    var searchText by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
@@ -57,7 +63,9 @@ private fun MainScreen(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
         topBar = {
             TopBar(
-                onSubmitSearch = { searchText ->
+                searchText = searchText,
+                onSearchTextChange = { searchText = it },
+                onSubmitSearch = {
                     val message = when {
                         searchText.isBlank() -> "Nothing to search: all documents are shown"
                         else -> "Searching by \"$searchText\" completed"
@@ -67,12 +75,12 @@ private fun MainScreen(
                         snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
                     }
                 },
-                collectionNames = viewModel.collectionNames,
+                collectionNames = viewModel.collectionClasses.map { requireNotNull(it.simpleName) },
                 onCollectionNameSelected = {
                     val name = requireNotNull(it)
                     coroutineScope.launch { viewModel.selectCollection(name) }
                 },
-                fieldNames = fieldNames,
+                fieldNames = fields.map { it.name },
                 onFieldNameSelected = {
                     val name = requireNotNull(it)
                     coroutineScope.launch { viewModel.selectField(name) }
@@ -95,8 +103,8 @@ private fun MainScreen(
                 )
             }
 
-            if (isDialogOpen) when (selectedCollectionName) {
-                MockUser::class.simpleName -> CreateMockUserDialog(
+            if (isDialogOpen) when (selectedCollection) {
+                MockUser::class -> CreateMockUserDialog(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateUser = { user ->
                         coroutineScope.launch {
@@ -108,7 +116,7 @@ private fun MainScreen(
                         }
                     },
                 )
-                MockData::class.simpleName -> CreateMockDataDialog(
+                MockData::class -> CreateMockDataDialog(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateData = { data ->
                         coroutineScope.launch {
@@ -123,20 +131,48 @@ private fun MainScreen(
             }
         },
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            val items = remember { List(size = 100, Int::toString) }
-            DataTable<String>(
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            DataTable<Identifiable<*>>(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(16.dp),
                 header = {
-                    column(onSortOrderChanged = {}, content = { OneLineText("String") })
+                    fields.forEach { property ->
+                        val onSortOrderChanged: (Int) -> Unit = {
+                            coroutineScope.launch {
+                                viewModel.sortByField(property.name, searchText)
+                            }
+                        }
+                        column(
+                            onSortOrderChanged = onSortOrderChanged,
+                            content = { OneLineText(text = property.name.capitalize()) },
+                        )
+                    }
                 },
             ) {
                 rows(
-                    items = items,
+                    items = tableRows,
                     onItemSelected = {
                         println(it)
                         clearSelection()
                     },
-                    content = { column { OneLineText(it) } },
+                    content = {
+                        when (it) {
+                            is MockUser -> {
+                                column { OneLineText(text = it.name) }
+                                column { OneLineText(text = "${it.age}") }
+                            }
+                            is MockData -> {
+                                column { OneLineText(text = "${it.data1}") }
+                                column { OneLineText(text = it.data2) }
+                                column { OneLineText(text = "${it.data3}") }
+                            }
+                        }
+                    },
                 )
             }
         }

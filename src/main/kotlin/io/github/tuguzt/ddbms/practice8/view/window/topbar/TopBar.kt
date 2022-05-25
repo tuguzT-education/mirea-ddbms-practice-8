@@ -12,7 +12,9 @@ import io.github.tuguzt.ddbms.practice8.view.Tooltip
 
 @Composable
 fun TopBar(
-    onSubmitSearch: (String) -> Unit,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    onSubmitSearch: () -> Unit,
     collectionNames: List<String>,
     onCollectionNameSelected: (String?) -> Unit,
     fieldNames: List<String>,
@@ -24,8 +26,6 @@ fun TopBar(
         elevation = AppBarDefaults.TopAppBarElevation,
     ) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-            var searchText by remember { mutableStateOf("") }
-
             Row(
                 modifier = modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -51,8 +51,8 @@ fun TopBar(
                 Tooltip(text = "Search bar") {
                     TopSearchBar(
                         value = searchText,
-                        onSubmit = { onSubmitSearch(searchText) },
-                        onValueChange = { searchText = it },
+                        onSubmit = { onSubmitSearch() },
+                        onValueChange = { onSearchTextChange(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(4.dp)),

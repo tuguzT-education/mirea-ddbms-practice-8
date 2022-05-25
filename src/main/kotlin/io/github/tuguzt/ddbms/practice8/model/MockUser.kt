@@ -11,5 +11,3 @@ data class MockUser(
     val age: Int,
     @Contextual @SerialName("_id") override val id: Id<MockUser>? = null,
 ) : Identifiable<MockUser>()
-
-fun MockUser.toTableRow(): List<String> = listOf(name, "$age")
