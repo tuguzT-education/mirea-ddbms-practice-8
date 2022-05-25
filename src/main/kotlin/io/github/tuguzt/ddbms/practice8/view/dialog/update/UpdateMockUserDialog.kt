@@ -66,7 +66,7 @@ private fun Content(
             UpdateButtonRow(
                 onClickCancel = onCloseRequest,
                 onClickConfirm = update,
-                enabledConfirm = name != user.name && age.toIntOrNull() != user.age,
+                enabledConfirm = name != user.name || age.toIntOrNull() != user.age,
                 modifier = Modifier.weight(1f),
             )
         }

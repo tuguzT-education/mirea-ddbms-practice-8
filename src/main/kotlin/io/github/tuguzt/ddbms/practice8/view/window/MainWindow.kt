@@ -19,6 +19,7 @@ import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
 import io.github.tuguzt.ddbms.practice8.view.viewModel
 import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
+import io.github.tuguzt.ddbms.practice8.view.window.table.rows
 import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -123,7 +124,22 @@ private fun MainScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            DataTable(columns = fieldNames, rows = tableRows)
+            DataTable<String>(
+                header = {
+                    column(onSortOrderChanged = {}, content = { OneLineText("String") })
+                },
+            ) {
+                val items = remember { List(size = 100, Int::toString) }
+                rows(
+                    items = items,
+                    onItemSelected = {
+                        println(it)
+                        clearSelection()
+                    },
+                ) {
+                    column { OneLineText(it) }
+                }
+            }
         }
     }
 }

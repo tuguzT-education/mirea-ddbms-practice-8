@@ -79,8 +79,8 @@ private fun Content(
                 onClickCancel = onCloseRequest,
                 onClickConfirm = update,
                 enabledConfirm = data1.toIntOrNull() != data.data1
-                        && data2 != data.data2
-                        && data3.toLongOrNull() != data.data3,
+                        || data2 != data.data2
+                        || data3.toLongOrNull() != data.data3,
                 modifier = Modifier.weight(1f),
             )
         }

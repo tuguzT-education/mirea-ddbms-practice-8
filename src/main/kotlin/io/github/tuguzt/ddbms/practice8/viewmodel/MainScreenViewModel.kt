@@ -100,6 +100,12 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         updateTableRows()
     }
 
+    suspend fun deleteUser(user: MockUser) {
+        val id = requireNotNull(user.id)
+        userCollection.deleteOneById(id)
+        updateTableRows()
+    }
+
     suspend fun insertData(data: MockData) {
         dataCollection.save(data)
         updateTableRows()
@@ -107,6 +113,12 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
 
     suspend fun updateData(data: MockData) {
         dataCollection.updateOne(data)
+        updateTableRows()
+    }
+
+    suspend fun deleteData(data: MockData) {
+        val id = requireNotNull(data.id)
+        dataCollection.deleteOneById(id)
         updateTableRows()
     }
 
