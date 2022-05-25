@@ -42,7 +42,7 @@ private fun Content(
 
     @Suppress("NAME_SHADOWING")
     val update = {
-        val data = MockData(data1.toInt(), data2, data3.toLong())
+        val data = MockData(data1.toInt(), data2, data3.toLong(), data.id)
         onUpdateData(data)
     }
 

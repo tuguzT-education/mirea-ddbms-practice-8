@@ -20,9 +20,12 @@ import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockDataDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
 import io.github.tuguzt.ddbms.practice8.view.viewModel
 import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
+import io.github.tuguzt.ddbms.practice8.view.window.table.rememberDataTableState
 import io.github.tuguzt.ddbms.practice8.view.window.table.rows
 import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
@@ -136,15 +139,26 @@ private fun MainScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            DataTable<Identifiable<*>>(
+            var dropdownExpanded by remember { mutableStateOf(false) }
+            val tableState = rememberDataTableState<Identifiable<*>>()
+
+            DataTable(
                 modifier = Modifier
                     .matchParentSize()
                     .padding(16.dp),
+                state = tableState,
                 header = {
                     fields.forEach { property ->
                         val onSortOrderChanged: (Int) -> Unit = {
+                            val orderDescription = when (it) {
+                                1 -> "ascending"
+                                -1 -> "descending"
+                                else -> "no"
+                            }
+                            val message = "Sorting data by \"${property.name}\" field by $orderDescription order"
                             coroutineScope.launch {
                                 viewModel.sortByField(property.name, searchText)
+                                snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
                             }
                         }
                         column(
@@ -156,10 +170,7 @@ private fun MainScreen(
             ) {
                 rows(
                     items = tableRows,
-                    onItemSelected = {
-                        println(it)
-                        clearSelection()
-                    },
+                    onItemSelected = { dropdownExpanded = !dropdownExpanded },
                     content = {
                         when (it) {
                             is MockUser -> {
@@ -174,6 +185,74 @@ private fun MainScreen(
                         }
                     },
                 )
+            }
+
+            var isUpdateDialogOpen by remember { mutableStateOf(false) }
+
+            var renderCount by remember { mutableStateOf(0) }
+            listOf(renderCount, renderCount - 1).forEach { renderId ->
+                val isActive = renderId == renderCount
+                key(renderId) {
+                    CursorDropdownMenu(
+                        expanded = dropdownExpanded && isActive,
+                        onDismissRequest = {
+                            if (isActive) {
+                                renderCount += 1
+                                dropdownExpanded = false
+                                tableState.clearSelection()
+                            }
+                        },
+                    ) {
+                        DropdownMenuItem(
+                            onClick = { isUpdateDialogOpen = true }
+                        ) {
+                            OneLineText(text = "Update")
+                        }
+                        DropdownMenuItem(
+                            onClick = { /* todo delete data */ }
+                        ) {
+                            OneLineText(text = "Delete")
+                        }
+                    }
+                }
+            }
+
+            if (isUpdateDialogOpen) {
+                val onCloseRequest = {
+                    dropdownExpanded = false
+                    isUpdateDialogOpen = false
+                    tableState.clearSelection()
+                }
+                when (val selected = requireNotNull(tableState.selectedItem)) {
+                    is MockUser -> UpdateMockUserDialog(
+                        onCloseRequest = onCloseRequest,
+                        user = selected,
+                        onUpdateUser = { user ->
+                            coroutineScope.launch {
+                                viewModel.updateUser(user)
+                                onCloseRequest()
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock user successfully updated",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                        },
+                    )
+                    is MockData -> UpdateMockDataDialog(
+                        onCloseRequest = onCloseRequest,
+                        data = selected,
+                        onUpdateData = { data ->
+                            coroutineScope.launch {
+                                viewModel.updateData(data)
+                                onCloseRequest()
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock data successfully updated",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
     }

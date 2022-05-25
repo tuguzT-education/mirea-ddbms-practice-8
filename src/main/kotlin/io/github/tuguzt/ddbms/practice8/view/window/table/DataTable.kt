@@ -12,7 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +26,7 @@ fun <T> DataTable(
     header: TableHeaderScope.() -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(4.dp),
+    state: DataTableState<T> = rememberDataTableState(),
     content: TableScope<T>.() -> Unit,
 ) {
     val borderColor = MaterialTheme.colors.onSurface.copy(0.12f)
@@ -48,22 +49,18 @@ fun <T> DataTable(
         // todo "add logic for displaying data loading with usage of LinearProgressIndicator
         //  (it's not immediate, which is seen on app startup"
 
-        var selectedItem: T? by remember { mutableStateOf(null) }
-        val tableScope = TableScopeImpl(
-            selectedItem = selectedItem,
-            onSelectedItemChange = { selectedItem = it },
-        )
+        val tableScope = TableScopeImpl(state)
         tableScope.content()
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (tableScope.isPresent()) {
-                val state = rememberLazyListState()
+                val listState = rememberLazyListState()
 
-                LazyColumn(state = state, modifier = Modifier.matchParentSize()) {
+                LazyColumn(state = listState, modifier = Modifier.matchParentSize()) {
                     tableScope.inflate(lazyListScope = this)
                 }
                 VerticalScrollbar(
-                    adapter = rememberScrollbarAdapter(scrollState = state),
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .fillMaxHeight(),

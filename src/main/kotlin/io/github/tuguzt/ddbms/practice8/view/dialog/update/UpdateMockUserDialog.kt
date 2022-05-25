@@ -39,7 +39,7 @@ private fun Content(
 
     @Suppress("NAME_SHADOWING")
     val update = {
-        val user = MockUser(name, age.toInt())
+        val user = MockUser(name, age.toInt(), user.id)
         onUpdateUser(user)
     }
 

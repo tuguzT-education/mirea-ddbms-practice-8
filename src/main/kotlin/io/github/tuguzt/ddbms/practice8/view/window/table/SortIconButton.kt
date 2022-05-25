@@ -33,8 +33,6 @@ fun SortIconButton(
             if (hover || sortOrder != 0) {
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // todo "implement sorting (in both orders), maybe for multiple fields
-
                 IconButton(onClick = {
                     sortOrder = sortOrder.cycleSortOrder()
                     onSortOrderChanged(sortOrder)

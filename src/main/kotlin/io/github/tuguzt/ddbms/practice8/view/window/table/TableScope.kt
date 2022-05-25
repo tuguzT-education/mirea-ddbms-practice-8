@@ -36,10 +36,7 @@ fun <T> TableScope<T>.rows(
     }
 }
 
-class TableScopeImpl<T>(
-    private val selectedItem: T? = null,
-    private val onSelectedItemChange: (T?) -> Unit,
-) : TableScope<T> {
+class TableScopeImpl<T>(private val state: DataTableState<T>) : TableScope<T> {
     private val rows = mutableListOf<@Composable () -> Unit>()
 
     override fun row(
@@ -55,12 +52,12 @@ class TableScopeImpl<T>(
                     var modifier = Modifier
                         .heightIn(min = 52.dp)
                         .background(
-                            if (selectedItem == item) MaterialTheme.colors.onSurface.copy(alpha = 0.04f)
+                            if (state.selectedItem == item) MaterialTheme.colors.onSurface.copy(alpha = 0.04f)
                             else Color.Transparent
                         )
                     if (onItemSelected != null) {
                         modifier = modifier.clickable {
-                            onSelectedItemChange(item)
+                            state.selectedItem = item
                             onItemSelected()
                         }
                     }
@@ -76,9 +73,7 @@ class TableScopeImpl<T>(
         }
     }
 
-    override fun clearSelection() {
-        onSelectedItemChange(null)
-    }
+    override fun clearSelection(): Unit = state.clearSelection()
 
     fun isPresent(): Boolean = rows.isNotEmpty()
 
