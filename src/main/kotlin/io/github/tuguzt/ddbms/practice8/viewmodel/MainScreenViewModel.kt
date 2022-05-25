@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineClient
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.updateOne
 import org.litote.kmongo.regex
 import org.litote.kmongo.textIndex
+import kotlin.reflect.KProperty
 
 class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClient) : ViewModel(viewModelScope) {
     private val database = client.getDatabase(identifier)
@@ -39,29 +41,37 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
     private val _selectedCollectionName = MutableStateFlow(collectionNames.first())
     val selectedCollectionName = _selectedCollectionName.asStateFlow()
 
-    private val userCollectionFieldNames = listOf(MockUser::name.name, MockUser::age.name)
-    private val dataCollectionFieldNames = listOf(MockData::data1.name, MockData::data2.name, MockData::data3.name)
+    private val userCollectionFieldSortOrders = linkedMapOf<KProperty<*>, Boolean>()
+    private val userCollectionFields =
+        listOf(MockUser::name.name, MockUser::age.name)
 
-    private val _selectedFieldName = MutableStateFlow(userCollectionFieldNames.first())
+    private val dataCollectionFieldSortOrders = linkedMapOf<KProperty<*>, Boolean>()
+    private val dataCollectionFields =
+        listOf(MockData::data1.name, MockData::data2.name, MockData::data3.name)
 
-    private var _fieldNames = MutableStateFlow(userCollectionFieldNames)
+    private val _selectedFieldName = MutableStateFlow(userCollectionFields.first())
+
+    private var _fieldNames = MutableStateFlow(userCollectionFields)
     val fieldNames = _fieldNames.asStateFlow()
 
     private var _tableRows = MutableStateFlow(listOf<List<String>>())
     val tableRows = _tableRows.asStateFlow()
 
     private suspend fun updateTableRows() {
+        suspend fun subUpdate(
+            collection: CoroutineCollection<*>,
+            collectionFields: List<String>,
+            collectionFieldSortOrders: LinkedHashMap<KProperty<*>, Boolean>,
+        ) {
+            _tableRows.emit(combineFindSort(collection, collectionFieldSortOrders))
+            _fieldNames.emit(collectionFields)
+        }
+
         when (selectedCollectionName.value) {
-            MockUser::class.simpleName -> {
-                _fieldNames.emit(userCollectionFieldNames)
-                val tableRows = userCollection.find().toList().map { it.toTableRow() }
-                _tableRows.emit(tableRows)
-            }
-            MockData::class.simpleName -> {
-                _fieldNames.emit(dataCollectionFieldNames)
-                val tableRows = dataCollection.find().toList().map { it.toTableRow() }
-                _tableRows.emit(tableRows)
-            }
+            MockUser::class.simpleName ->
+                subUpdate(userCollection, userCollectionFields, userCollectionFieldSortOrders)
+            MockData::class.simpleName ->
+                subUpdate(dataCollection, dataCollectionFields, dataCollectionFieldSortOrders)
             else -> throw IllegalArgumentException("Wrong selected collection name")
         }
     }
@@ -74,8 +84,8 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
 
     suspend fun selectField(name: String) {
         when (name) {
-            in userCollectionFieldNames -> _selectedFieldName.emit(value = name)
-            in dataCollectionFieldNames -> _selectedFieldName.emit(value = name)
+            in userCollectionFields -> _selectedFieldName.emit(value = name)
+            in dataCollectionFields -> _selectedFieldName.emit(value = name)
             else -> throw IllegalArgumentException("Wrong field name")
         }
     }
@@ -100,38 +110,59 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         updateTableRows()
     }
 
-    suspend fun search(searchText: String) {
-        if (searchText.isBlank()) {
-            updateTableRows()
-            return
+    suspend fun sortByField(fieldName: String, searchText: String) {
+        when (selectedCollectionName.value) {
+            MockUser::class.simpleName -> manageFieldSortOrder(
+                fieldName = fieldName,
+                fieldSortOrders = userCollectionFieldSortOrders,
+                property = when (fieldName) {
+                    MockUser::name.name -> MockUser::name
+                    MockUser::age.name -> MockUser::age
+                    else -> throw IllegalArgumentException("Wrong field name passed.")
+                },
+            )
+            MockData::class.simpleName -> manageFieldSortOrder(
+                fieldName = fieldName,
+                fieldSortOrders = dataCollectionFieldSortOrders,
+                property = when (fieldName) {
+                    MockData::data1.name -> MockData::data1
+                    MockData::data2.name -> MockData::data2
+                    MockData::data3.name -> MockData::data3
+                    else -> throw IllegalArgumentException("Wrong field name passed.")
+                }
+            )
         }
+        search(searchText)
+    }
 
-        val escapedSearchText = searchText.trim().asSequence().map(Char::escapeRegex).joinToString(separator = "")
-        val regex = ".*$escapedSearchText.*"
-        val tableRows = when (selectedCollectionName.value) {
-            MockUser::class.simpleName -> {
-                val filter = when (_selectedFieldName.value) {
-                    MockUser::name.name -> MockUser::name regex regex
-                    MockUser::age.name -> MockUser::age regex regex
-                    else -> throw IllegalStateException("Wrong selected field name")
+    suspend fun search(searchText: String) {
+        if (searchText.isNotBlank()) {
+            val regex = ".*${searchText.trim().asSequence().map(Char::escapeRegex).joinToString(separator = "")}.*"
+
+            _tableRows.emit(
+                when (selectedCollectionName.value) {
+                    MockUser::class.simpleName -> combineFindSort(
+                        userCollection,
+                        userCollectionFieldSortOrders,
+                        when (_selectedFieldName.value) {
+                            MockUser::name.name -> MockUser::name regex regex
+                            MockUser::age.name -> MockUser::age regex regex
+                            else -> throw IllegalStateException("Wrong selected field name")
+                        }
+                    )
+                    MockData::class.simpleName -> combineFindSort(
+                        dataCollection,
+                        dataCollectionFieldSortOrders,
+                        when (_selectedFieldName.value) {
+                            MockData::data1.name -> MockData::data1 regex regex
+                            MockData::data2.name -> MockData::data2 regex regex
+                            MockData::data3.name -> MockData::data3 regex regex
+                            else -> throw IllegalStateException("Wrong selected field name")
+                        }
+                    )
+                    else -> throw IllegalStateException("Wrong selected collection name")
                 }
-                userCollection.find(filter).toList().map { it.toTableRow() }
-            }
-            MockData::class.simpleName -> {
-                val filter = when (_selectedFieldName.value) {
-                    MockData::data1.name -> MockData::data1 regex regex
-                    MockData::data2.name -> MockData::data2 regex regex
-                    MockData::data3.name -> MockData::data3 regex regex
-                    else -> throw IllegalStateException("Wrong selected field name")
-                }
-                dataCollection.find(filter).toList().map { it.toTableRow() }
-            }
-            else -> throw IllegalStateException("Wrong selected collection name")
-        }
-        _tableRows.emit(tableRows)
+            )
+        } else updateTableRows()
     }
 }
-
-private fun MockUser.toTableRow(): List<String> = listOf(name, "$age")
-
-private fun MockData.toTableRow(): List<String> = listOf("$data1", data2, "$data3")

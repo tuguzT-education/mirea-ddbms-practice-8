@@ -12,3 +12,5 @@ data class MockData(
     val data3: Long,
     @Contextual @SerialName("_id") override val id: Id<MockData>? = null,
 ) : Identifiable<MockData>()
+
+fun MockData.toTableRow(): List<String> = listOf("$data1", data2, "$data3")
