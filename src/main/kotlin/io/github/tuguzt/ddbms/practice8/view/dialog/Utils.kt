@@ -66,7 +66,9 @@ fun IconTextButton(
 @Composable
 fun ChoiceButtonRow(
     onClickCancel: () -> Unit,
+    cancelTooltip: String,
     onClickConfirm: () -> Unit,
+    confirmTooltip: String,
     enabledConfirm: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -75,18 +77,18 @@ fun ChoiceButtonRow(
         horizontalArrangement = Arrangement.End,
         modifier = modifier.fillMaxWidth(),
     ) {
-        Tooltip(text = "Confirm adding document ...") {
+        Tooltip(text = confirmTooltip) {
             IconTextButton(
                 text = "Confirm",
                 onClick = onClickConfirm,
                 enabled = enabledConfirm,
                 resourcePath = "icons/ok.svg",
-                contentDescription = "Confirm adding document ...",
+                contentDescription = confirmTooltip,
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
 
-        Tooltip(text = "Cancel adding document ...") {
+        Tooltip(text = cancelTooltip) {
             IconTextButton(
                 text = "Cancel",
                 onClick = onClickCancel,
@@ -94,7 +96,7 @@ fun ChoiceButtonRow(
                     backgroundColor = MaterialTheme.colors.error
                 ),
                 resourcePath = "icons/cancel.svg",
-                contentDescription = "Cancel adding document ...",
+                contentDescription = cancelTooltip,
             )
         }
     }

@@ -1,5 +1,6 @@
 package io.github.tuguzt.ddbms.practice8.viewmodel
 
+import io.github.tuguzt.ddbms.practice8.docker.identifier
 import io.github.tuguzt.ddbms.practice8.escapeRegex
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
@@ -9,11 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineClient
+import org.litote.kmongo.coroutine.updateOne
 import org.litote.kmongo.regex
 import org.litote.kmongo.textIndex
 
 class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClient) : ViewModel(viewModelScope) {
-    private val database = client.getDatabase("ddbms-practice-8")
+    private val database = client.getDatabase(identifier)
 
     private val userCollection = database.getCollection<MockUser>()
     private val dataCollection = database.getCollection<MockData>()
@@ -51,14 +53,14 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
     private suspend fun updateTableRows() {
         when (selectedCollectionName.value) {
             MockUser::class.simpleName -> {
+                _fieldNames.emit(userCollectionFieldNames)
                 val tableRows = userCollection.find().toList().map { it.toTableRow() }
                 _tableRows.emit(tableRows)
-                _fieldNames.emit(userCollectionFieldNames)
             }
             MockData::class.simpleName -> {
+                _fieldNames.emit(dataCollectionFieldNames)
                 val tableRows = dataCollection.find().toList().map { it.toTableRow() }
                 _tableRows.emit(tableRows)
-                _fieldNames.emit(dataCollectionFieldNames)
             }
             else -> throw IllegalArgumentException("Wrong selected collection name")
         }
@@ -79,12 +81,22 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
     }
 
     suspend fun insertUser(user: MockUser) {
-        userCollection.insertOne(user)
+        userCollection.save(user)
+        updateTableRows()
+    }
+
+    suspend fun updateUser(user: MockUser) {
+        userCollection.updateOne(user)
         updateTableRows()
     }
 
     suspend fun insertData(data: MockData) {
-        dataCollection.insertOne(data)
+        dataCollection.save(data)
+        updateTableRows()
+    }
+
+    suspend fun updateData(data: MockData) {
+        dataCollection.updateOne(data)
         updateTableRows()
     }
 

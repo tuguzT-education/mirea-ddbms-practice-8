@@ -14,11 +14,11 @@ import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
 import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
-import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockDataDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.NewMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
+import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
 import io.github.tuguzt.ddbms.practice8.view.viewModel
+import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
 import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +56,7 @@ private fun MainScreen(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
         topBar = {
             TopBar(
-                onSubmit = { searchText ->
+                onSubmitSearch = { searchText ->
                     val message = when {
                         searchText.isBlank() -> "Nothing to search: all documents are shown"
                         else -> "Searching by \"$searchText\" completed"
@@ -95,7 +95,7 @@ private fun MainScreen(
             }
 
             if (isDialogOpen) when (selectedCollectionName) {
-                MockUser::class.simpleName -> NewMockUserDialog(
+                MockUser::class.simpleName -> CreateMockUserDialog(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateUser = { user ->
                         coroutineScope.launch {
@@ -107,7 +107,7 @@ private fun MainScreen(
                         }
                     },
                 )
-                MockData::class.simpleName -> NewMockDataDialog(
+                MockData::class.simpleName -> CreateMockDataDialog(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateData = { data ->
                         coroutineScope.launch {

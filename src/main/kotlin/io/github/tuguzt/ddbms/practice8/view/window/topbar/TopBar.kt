@@ -12,7 +12,7 @@ import io.github.tuguzt.ddbms.practice8.view.Tooltip
 
 @Composable
 fun TopBar(
-    onSubmit: (String) -> Unit,
+    onSubmitSearch: (String) -> Unit,
     collectionNames: List<String>,
     onCollectionNameSelected: (String?) -> Unit,
     fieldNames: List<String>,
@@ -25,8 +25,6 @@ fun TopBar(
     ) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             var searchText by remember { mutableStateOf("") }
-            // todo "pass search query into MongoDB
-            //  and change table content appropriately"
 
             Row(
                 modifier = modifier.fillMaxWidth().padding(16.dp),
@@ -53,7 +51,7 @@ fun TopBar(
                 Tooltip(text = "Search bar") {
                     TopSearchBar(
                         value = searchText,
-                        onSubmit = { onSubmit(searchText) },
+                        onSubmit = { onSubmitSearch(searchText) },
                         onValueChange = { searchText = it },
                         modifier = Modifier
                             .fillMaxWidth()

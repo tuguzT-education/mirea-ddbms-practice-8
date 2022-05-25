@@ -20,6 +20,7 @@ repositories {
 dependencies {
     // Compose for Desktop, UI
     implementation(compose.desktop.currentOs)
+    implementation(compose.preview)
     implementation("com.github.tkuenneth:nativeparameterstoreaccess:0.1.2")
 
     // KotlinX

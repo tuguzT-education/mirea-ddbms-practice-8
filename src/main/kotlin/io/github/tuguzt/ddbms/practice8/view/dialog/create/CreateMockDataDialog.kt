@@ -1,23 +1,22 @@
-package io.github.tuguzt.ddbms.practice8.view.dialog
+package io.github.tuguzt.ddbms.practice8.view.dialog.create
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Surface
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
 import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
+import io.github.tuguzt.ddbms.practice8.view.dialog.DialogSurface
+import io.github.tuguzt.ddbms.practice8.view.dialog.OutlinedSingleLineTextField
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
 @Composable
-fun NewMockDataDialog(
+fun CreateMockDataDialog(
     onCloseRequest: () -> Unit,
     onCreateData: (MockData) -> Unit,
 ) {
@@ -46,18 +45,8 @@ private fun Content(
         onCreateData(user)
     }
 
-    val focusManager = LocalFocusManager.current
-    Surface(
-        modifier = Modifier.clickable(
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() },
-            onClick = focusManager::clearFocus,
-        ),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    DialogSurface {
+        Column(modifier = Modifier.matchParentSize()) {
             Tooltip(text = "Input field for \"data 1\"") {
                 OutlinedSingleLineTextField(
                     text = "Data 1",
@@ -85,7 +74,7 @@ private fun Content(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            ChoiceButtonRow(
+            CreateButtonRow(
                 onClickCancel = onCloseRequest,
                 onClickConfirm = addAndClose,
                 enabledConfirm = data1.toIntOrNull() != null
@@ -99,7 +88,7 @@ private fun Content(
 
 @Composable
 @Preview
-private fun NewMockDataDialogPreview() {
+private fun CreateMockDataDialogPreview() {
     Practice8Theme {
         Content(onCloseRequest = {}, onCreateData = {})
     }
