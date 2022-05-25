@@ -24,7 +24,7 @@ import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 fun <T> DataTable(
     modifier: Modifier = Modifier,
     header: TableHeaderScope.() -> Unit,
-    content: @Composable TableScope<T>.() -> Unit,
+    content: TableScope<T>.() -> Unit,
 ) {
     val shape = RoundedCornerShape(4.dp)
     val borderColor = MaterialTheme.colors.onSurface.copy(0.12f)
@@ -35,8 +35,9 @@ fun <T> DataTable(
             .border(.5f.dp, borderColor, shape)
             .clip(shape)
     ) {
-        val tableHeaderScope = TableHeaderScopeImpl()
-        tableHeaderScope.header()
+        val tableHeaderScope = remember(header) {
+            TableHeaderScopeImpl().apply { header() }
+        }
         if (tableHeaderScope.isPresent()) {
             Row(
                 modifier = Modifier.heightIn(min = 56.dp).background(borderColor),
@@ -50,11 +51,14 @@ fun <T> DataTable(
 
         var selectedItem: T? by remember { mutableStateOf(null) }
 
-        val tableScope = TableScopeImpl(
-            selectedItem = selectedItem,
-            onSelectedItemChange = { selectedItem = it },
-        )
-        tableScope.content()
+        val tableScope = remember(content) {
+            TableScopeImpl(
+                selectedItem = selectedItem,
+                onSelectedItemChange = { selectedItem = it },
+            ).apply {
+                content()
+            }
+        }
         Box(modifier = Modifier.fillMaxSize()) {
             if (tableScope.isPresent()) {
                 val state = rememberLazyListState()

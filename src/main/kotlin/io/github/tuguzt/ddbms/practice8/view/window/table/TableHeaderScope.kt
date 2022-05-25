@@ -51,8 +51,5 @@ class TableHeaderScopeImpl : TableHeaderScope {
     fun isPresent(): Boolean = columns.isNotEmpty()
 
     @Composable
-    fun inflate(rowScope: RowScope) {
-        columns.forEach { rowScope.it() }
-        columns.clear()
-    }
+    fun inflate(rowScope: RowScope): Unit = columns.forEach { rowScope.it() }
 }

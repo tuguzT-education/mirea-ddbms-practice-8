@@ -124,21 +124,20 @@ private fun MainScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            val items = remember { List(size = 100, Int::toString) }
             DataTable<String>(
                 header = {
                     column(onSortOrderChanged = {}, content = { OneLineText("String") })
                 },
             ) {
-                val items = remember { List(size = 100, Int::toString) }
                 rows(
                     items = items,
                     onItemSelected = {
                         println(it)
                         clearSelection()
                     },
-                ) {
-                    column { OneLineText(it) }
-                }
+                    content = { column { OneLineText(it) } },
+                )
             }
         }
     }
