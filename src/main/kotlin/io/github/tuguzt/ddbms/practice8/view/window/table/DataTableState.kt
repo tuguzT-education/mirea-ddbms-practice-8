@@ -1,6 +1,9 @@
 package io.github.tuguzt.ddbms.practice8.view.window.table
 
 import androidx.compose.runtime.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 class DataTableState<T>(selectedItem: T? = null, isLoading: Boolean = false) {
     var selectedItem by mutableStateOf(selectedItem)
@@ -11,10 +14,15 @@ class DataTableState<T>(selectedItem: T? = null, isLoading: Boolean = false) {
     }
 }
 
-inline fun <T> DataTableState<T>.whenLoading(action: () -> Unit) {
+@OptIn(ExperimentalContracts::class)
+inline fun <T, R> DataTableState<T>.whenLoading(action: () -> R): R {
+    contract {
+        callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+    }
     isLoading = true
-    action()
+    val result = action()
     isLoading = false
+    return result
 }
 
 @Composable

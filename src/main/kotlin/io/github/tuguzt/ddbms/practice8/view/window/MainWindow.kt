@@ -18,9 +18,9 @@ import io.github.tuguzt.ddbms.practice8.model.MockData
 import io.github.tuguzt.ddbms.practice8.model.MockUser
 import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
+import io.github.tuguzt.ddbms.practice8.view.dialog.DeleteDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.DeleteDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
@@ -60,6 +60,13 @@ private fun MainScreen(
     val tableState = rememberDataTableState<Identifiable<*>>()
     val focusManager = LocalFocusManager.current
 
+    val onFailure: suspend () -> Unit = {
+        snackbarHostState.showSnackbar(
+            message = "Something went wrong...",
+            actionLabel = "Dismiss",
+        )
+    }
+
     Scaffold(
         modifier = Modifier.clickable(
             indication = null,
@@ -72,15 +79,20 @@ private fun MainScreen(
                 searchText = searchText,
                 onSearchTextChange = { searchText = it },
                 onSubmitSearch = {
-                    val message = when {
-                        searchText.isBlank() -> "Nothing to search: all documents are shown"
-                        else -> "Searching by \"$searchText\" completed"
-                    }
                     coroutineScope.launch {
-                        tableState.whenLoading {
-                            viewModel.search(searchText)
+                        val action: suspend () -> Result<Unit> = {
+                            tableState.whenLoading {
+                                runCatching { viewModel.search(searchText) }
+                            }
                         }
-                        snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
+                        val onSuccess: suspend () -> Unit = {
+                            val message = when {
+                                searchText.isBlank() -> "Nothing to search: all documents are shown"
+                                else -> "Searching by \"$searchText\" completed"
+                            }
+                            snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
+                        }
+                        handleError(action, onSuccess, onFailure)
                     }
                 },
                 collectionNames = viewModel.collectionClasses.map { requireNotNull(it.simpleName) },
@@ -116,13 +128,18 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateUser = { user ->
                         coroutineScope.launch {
-                            tableState.whenLoading {
-                                viewModel.insert(user)
+                            val action: suspend () -> Result<Unit> = {
+                                tableState.whenLoading {
+                                    runCatching { viewModel.insert(user) }
+                                }
                             }
-                            snackbarHostState.showSnackbar(
-                                message = "Mock user successfully added",
-                                actionLabel = "Dismiss",
-                            )
+                            val onSuccess: suspend () -> Unit = {
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock user successfully added",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                            handleError(action, onSuccess, onFailure)
                         }
                     },
                 )
@@ -130,13 +147,18 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateData = { data ->
                         coroutineScope.launch {
-                            tableState.whenLoading {
-                                viewModel.insert(data)
+                            val action: suspend () -> Result<Unit> = {
+                                tableState.whenLoading {
+                                    runCatching { viewModel.insert(data) }
+                                }
                             }
-                            snackbarHostState.showSnackbar(
-                                message = "Mock data successfully added",
-                                actionLabel = "Dismiss",
-                            )
+                            val onSuccess: suspend () -> Unit = {
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock data successfully added",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                            handleError(action, onSuccess, onFailure)
                         }
                     }
                 )
@@ -156,24 +178,29 @@ private fun MainScreen(
                     .padding(16.dp),
                 state = tableState,
                 header = {
-                    fields.forEach { property ->
+                    fields.forEach { field ->
                         val onSortOrderChanged: (Int) -> Unit = {
-                            val orderDescription = when (it) {
-                                1 -> "ascending"
-                                -1 -> "descending"
-                                else -> "no"
-                            }
-                            val message = "Sorting data by \"${property.name}\" field in $orderDescription order"
                             coroutineScope.launch {
-                                tableState.whenLoading {
-                                    viewModel.sortByField(property.name, searchText)
+                                val action: suspend () -> Result<Unit> = {
+                                    tableState.whenLoading {
+                                        runCatching { viewModel.sortByField(field.name, searchText) }
+                                    }
                                 }
-                                snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
+                                val onSuccess: suspend () -> Unit = {
+                                    val orderDescription = when (it) {
+                                        1 -> "ascending"
+                                        -1 -> "descending"
+                                        else -> "no"
+                                    }
+                                    val message = "Sorting data by \"${field.name}\" field in $orderDescription order"
+                                    snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
+                                }
+                                handleError(action, onSuccess, onFailure)
                             }
                         }
                         column(
                             onSortOrderChanged = onSortOrderChanged,
-                            content = { OneLineText(text = property.name.capitalize()) },
+                            content = { OneLineText(text = field.name.capitalize()) },
                         )
                     }
                 },
@@ -241,14 +268,18 @@ private fun MainScreen(
                     user = selected,
                     onUpdateUser = { user ->
                         coroutineScope.launch {
-                            tableState.whenLoading {
-                                viewModel.update(user)
-                                onCloseRequest()
+                            val action: suspend () -> Result<Unit> = {
+                                tableState.whenLoading {
+                                    runCatching { viewModel.update(user) }.apply { onCloseRequest() }
+                                }
                             }
-                            snackbarHostState.showSnackbar(
-                                message = "Mock user successfully updated",
-                                actionLabel = "Dismiss",
-                            )
+                            val onSuccess: suspend () -> Unit = {
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock user successfully updated",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                            handleError(action, onSuccess, onFailure)
                         }
                     },
                 )
@@ -257,49 +288,21 @@ private fun MainScreen(
                     data = selected,
                     onUpdateData = { data ->
                         coroutineScope.launch {
-                            tableState.whenLoading {
-                                viewModel.update(data)
-                                onCloseRequest()
+                            val action: suspend () -> Result<Unit> = {
+                                tableState.whenLoading {
+                                    runCatching { viewModel.update(data) }.apply { onCloseRequest() }
+                                }
                             }
-                            snackbarHostState.showSnackbar(
-                                message = "Mock data successfully updated",
-                                actionLabel = "Dismiss",
-                            )
+                            val onSuccess: suspend () -> Unit = {
+                                snackbarHostState.showSnackbar(
+                                    message = "Mock data successfully updated",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                            handleError(action, onSuccess, onFailure)
                         }
                     }
                 )
-            }
-
-            if (isDeleteDialogOpen) when (val selected = tableState.selectedItem) {
-                is MockUser -> DeleteMockUserDialog(
-                    onCancel = onCloseRequest,
-                    onConfirm = {
-                        coroutineScope.launch {
-                            tableState.whenLoading {
-                                viewModel.deleteUser(selected)
-                                onCloseRequest()
-                            }
-                            snackbarHostState.showSnackbar(
-                                message = "Mock user successfully deleted",
-                                actionLabel = "Dismiss",
-                            )
-                        }
-                    },
-                )
-//                is MockData -> UpdateDialog(
-//                    onCloseRequest = onCloseRequest,
-//                    item = selected,
-//                    onUpdateItem = { item ->
-//                        coroutineScope.launch {
-//                            viewModel.update(item)
-//                            onCloseRequest()
-//                            snackbarHostState.showSnackbar(
-//                                message = "${item::class.simpleName} successfully updated",
-//                                actionLabel = "Dismiss",
-//                            )
-//                        }
-//                    }
-//                )
             }
 
             if (isDeleteDialogOpen) {
@@ -310,19 +313,34 @@ private fun MainScreen(
                     onCancel = onCloseRequest,
                     onConfirm = {
                         coroutineScope.launch {
-                            onCloseRequest()
-                            tableState.whenLoading {
-                                viewModel.delete(selected)
-                                onCloseRequest()
+                            val action: suspend () -> Result<Unit> = {
+                                tableState.whenLoading {
+                                    runCatching { viewModel.delete(selected) }.apply { onCloseRequest() }
+                                }
                             }
-                            snackbarHostState.showSnackbar(
-                                message = "$className successfully deleted",
-                                actionLabel = "Dismiss",
-                            )
+                            val onSuccess: suspend () -> Unit = {
+                                snackbarHostState.showSnackbar(
+                                    message = "$className successfully deleted",
+                                    actionLabel = "Dismiss",
+                                )
+                            }
+                            handleError(action, onSuccess, onFailure)
                         }
                     },
                 )
             }
         }
+    }
+}
+
+private suspend inline fun handleError(
+    crossinline action: suspend () -> Result<Unit>,
+    crossinline onSuccess: suspend () -> Unit,
+    crossinline onFailure: suspend () -> Unit,
+) {
+    val result = action()
+    when {
+        result.isSuccess -> onSuccess()
+        else -> onFailure()
     }
 }
