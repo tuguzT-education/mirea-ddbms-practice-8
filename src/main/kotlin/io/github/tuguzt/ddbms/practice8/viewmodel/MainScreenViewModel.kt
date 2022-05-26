@@ -60,6 +60,9 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
     private val _tableRows = MutableStateFlow(listOf<Identifiable<*>>())
     val tableRows = _tableRows.asStateFlow()
 
+    private suspend fun beforeUpdateTableRows(action: suspend () -> Unit) =
+        action().apply { updateTableRows() }
+
     private suspend fun updateTableRows() {
         suspend fun <T : Identifiable<T>> actualUpdate(
             collection: CoroutineCollection<T>,
@@ -77,10 +80,10 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         }
     }
 
-    suspend fun selectCollection(name: String) {
-        val kClass = requireNotNull(collectionClasses.find { it.simpleName == name }) { "Wrong collection name" }
-        _selectedCollectionClass.emit(kClass)
-        updateTableRows()
+    suspend fun selectCollection(name: String) = beforeUpdateTableRows {
+        _selectedCollectionClass.emit(
+            requireNotNull(collectionClasses.find { it.simpleName == name }) { "Wrong collection name" }
+        )
     }
 
     suspend fun selectField(name: String) {
@@ -91,36 +94,25 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         )
     }
 
-    suspend fun insertUser(user: MockUser) {
-        userCollection.save(user)
-        updateTableRows()
+    suspend fun insert(item: Identifiable<*>) = beforeUpdateTableRows {
+        when (item) {
+            is MockUser -> userCollection.save(item)
+            is MockData -> dataCollection.save(item)
+        }
     }
 
-    suspend fun updateUser(user: MockUser) {
-        userCollection.updateOne(user)
-        updateTableRows()
+    suspend fun update(item: Identifiable<*>) = beforeUpdateTableRows {
+        when (item) {
+            is MockUser -> userCollection.updateOne(item)
+            is MockData -> dataCollection.updateOne(item)
+        }
     }
 
-    suspend fun deleteUser(user: MockUser) {
-        val id = requireNotNull(user.id)
-        userCollection.deleteOneById(id)
-        updateTableRows()
-    }
-
-    suspend fun insertData(data: MockData) {
-        dataCollection.save(data)
-        updateTableRows()
-    }
-
-    suspend fun updateData(data: MockData) {
-        dataCollection.updateOne(data)
-        updateTableRows()
-    }
-
-    suspend fun deleteData(data: MockData) {
-        val id = requireNotNull(data.id)
-        dataCollection.deleteOneById(id)
-        updateTableRows()
+    suspend fun delete(item: Identifiable<*>) = beforeUpdateTableRows {
+        when (item) {
+            is MockUser -> userCollection.deleteOneById(requireNotNull(item.id))
+            is MockData -> dataCollection.deleteOneById(requireNotNull(item.id))
+        }
     }
 
     suspend fun sortByField(fieldName: String, searchText: String) {

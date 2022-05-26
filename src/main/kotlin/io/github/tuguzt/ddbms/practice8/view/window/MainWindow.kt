@@ -20,8 +20,7 @@ import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockDataDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockUserDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.DeleteDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
@@ -113,7 +112,7 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateUser = { user ->
                         coroutineScope.launch {
-                            viewModel.insertUser(user)
+                            viewModel.insert(user)
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully added",
                                 actionLabel = "Dismiss",
@@ -125,7 +124,7 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateData = { data ->
                         coroutineScope.launch {
-                            viewModel.insertData(data)
+                            viewModel.insert(data)
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully added",
                                 actionLabel = "Dismiss",
@@ -233,7 +232,7 @@ private fun MainScreen(
                     user = selected,
                     onUpdateUser = { user ->
                         coroutineScope.launch {
-                            viewModel.updateUser(user)
+                            viewModel.update(user)
                             onCloseRequest()
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully updated",
@@ -247,7 +246,7 @@ private fun MainScreen(
                     data = selected,
                     onUpdateData = { data ->
                         coroutineScope.launch {
-                            viewModel.updateData(data)
+                            viewModel.update(data)
                             onCloseRequest()
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully updated",
@@ -256,36 +255,39 @@ private fun MainScreen(
                         }
                     }
                 )
+//                is MockData -> UpdateDialog(
+//                    onCloseRequest = onCloseRequest,
+//                    item = selected,
+//                    onUpdateItem = { item ->
+//                        coroutineScope.launch {
+//                            viewModel.update(item)
+//                            onCloseRequest()
+//                            snackbarHostState.showSnackbar(
+//                                message = "${item::class.simpleName} successfully updated",
+//                                actionLabel = "Dismiss",
+//                            )
+//                        }
+//                    }
+//                )
             }
 
-            if (isDeleteDialogOpen) when (val selected = tableState.selectedItem) {
-                is MockUser -> DeleteMockUserDialog(
+            if (isDeleteDialogOpen) {
+                val selected = requireNotNull(tableState.selectedItem)
+                val className = selected::class.simpleName
+                DeleteDialog(
+                    title = "$className",
                     onCancel = onCloseRequest,
                     onConfirm = {
                         coroutineScope.launch {
-                            viewModel.deleteUser(selected)
+                            viewModel.delete(selected)
                             onCloseRequest()
                             snackbarHostState.showSnackbar(
-                                message = "Mock user successfully deleted",
+                                message = "$className successfully deleted",
                                 actionLabel = "Dismiss",
                             )
                         }
                     },
                 )
-                is MockData -> DeleteMockDataDialog(
-                    onCancel = onCloseRequest,
-                    onConfirm = {
-                        coroutineScope.launch {
-                            viewModel.deleteData(selected)
-                            onCloseRequest()
-                            snackbarHostState.showSnackbar(
-                                message = "Mock data successfully deleted",
-                                actionLabel = "Dismiss",
-                            )
-                        }
-                    },
-                )
-                else -> Unit
             }
         }
     }
