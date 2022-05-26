@@ -28,7 +28,7 @@ fun DeleteDialog(
         title = deleteTitle.capitalize(),
         onCloseRequest = onCancel,
         resizable = false,
-        state = rememberDialogState(height = 250.dp),
+        state = rememberDialogState(height = 200.dp),
     ) {
         Content(title = deleteTitle, onConfirm = onConfirm, onCancel = onCancel)
     }
@@ -47,7 +47,7 @@ private fun Content(
         ) {
             Text(
                 text = "Are you sure you want to $title?",
-                style = MaterialTheme.typography.h5,
+                style = MaterialTheme.typography.h6,
                 modifier = Modifier.fillMaxWidth(fraction = 0.8f),
                 textAlign = TextAlign.Center,
             )

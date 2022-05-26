@@ -18,6 +18,7 @@ import org.litote.kmongo.regex
 import org.litote.kmongo.textIndex
 import kotlin.reflect.KProperty1
 
+// todo "add support for all tables (at least 5)"
 class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClient) : ViewModel(viewModelScope) {
     companion object {
         private val logger = KotlinLogging.logger {}
