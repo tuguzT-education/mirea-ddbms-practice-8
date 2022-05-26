@@ -13,9 +13,9 @@ fun UpdateButtonRow(
 ) {
     ChoiceButtonRow(
         onClickCancel = onClickCancel,
-        cancelTooltip = "Cancel updating document ...",
+        cancelTooltip = "Cancel updating document",
         onClickConfirm = onClickConfirm,
-        confirmTooltip = "Confirm updating document ...",
+        confirmTooltip = "Confirm updating document",
         enabledConfirm = enabledConfirm,
         modifier = modifier,
     )

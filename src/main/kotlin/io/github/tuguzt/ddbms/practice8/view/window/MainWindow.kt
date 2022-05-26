@@ -20,6 +20,8 @@ import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockDataDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
@@ -155,7 +157,7 @@ private fun MainScreen(
                                 -1 -> "descending"
                                 else -> "no"
                             }
-                            val message = "Sorting data by \"${property.name}\" field by $orderDescription order"
+                            val message = "Sorting data by \"${property.name}\" field in $orderDescription order"
                             coroutineScope.launch {
                                 viewModel.sortByField(property.name, searchText)
                                 snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
@@ -188,6 +190,7 @@ private fun MainScreen(
             }
 
             var isUpdateDialogOpen by remember { mutableStateOf(false) }
+            var isDeleteDialogOpen by remember { mutableStateOf(false) }
 
             var renderCount by remember { mutableStateOf(0) }
             listOf(renderCount, renderCount - 1).forEach { renderId ->
@@ -209,7 +212,7 @@ private fun MainScreen(
                             OneLineText(text = "Update")
                         }
                         DropdownMenuItem(
-                            onClick = { /* todo delete data */ }
+                            onClick = { isDeleteDialogOpen = true }
                         ) {
                             OneLineText(text = "Delete")
                         }
@@ -217,42 +220,72 @@ private fun MainScreen(
                 }
             }
 
-            if (isUpdateDialogOpen) {
-                val onCloseRequest = {
-                    dropdownExpanded = false
-                    isUpdateDialogOpen = false
-                    tableState.clearSelection()
-                }
-                when (val selected = requireNotNull(tableState.selectedItem)) {
-                    is MockUser -> UpdateMockUserDialog(
-                        onCloseRequest = onCloseRequest,
-                        user = selected,
-                        onUpdateUser = { user ->
-                            coroutineScope.launch {
-                                viewModel.updateUser(user)
-                                onCloseRequest()
-                                snackbarHostState.showSnackbar(
-                                    message = "Mock user successfully updated",
-                                    actionLabel = "Dismiss",
-                                )
-                            }
-                        },
-                    )
-                    is MockData -> UpdateMockDataDialog(
-                        onCloseRequest = onCloseRequest,
-                        data = selected,
-                        onUpdateData = { data ->
-                            coroutineScope.launch {
-                                viewModel.updateData(data)
-                                onCloseRequest()
-                                snackbarHostState.showSnackbar(
-                                    message = "Mock data successfully updated",
-                                    actionLabel = "Dismiss",
-                                )
-                            }
+            val onCloseRequest = {
+                dropdownExpanded = false
+                isUpdateDialogOpen = false
+                isDeleteDialogOpen = false
+                tableState.clearSelection()
+            }
+
+            if (isUpdateDialogOpen) when (val selected = requireNotNull(tableState.selectedItem)) {
+                is MockUser -> UpdateMockUserDialog(
+                    onCloseRequest = onCloseRequest,
+                    user = selected,
+                    onUpdateUser = { user ->
+                        coroutineScope.launch {
+                            viewModel.updateUser(user)
+                            onCloseRequest()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock user successfully updated",
+                                actionLabel = "Dismiss",
+                            )
                         }
-                    )
-                }
+                    },
+                )
+                is MockData -> UpdateMockDataDialog(
+                    onCloseRequest = onCloseRequest,
+                    data = selected,
+                    onUpdateData = { data ->
+                        coroutineScope.launch {
+                            viewModel.updateData(data)
+                            onCloseRequest()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock data successfully updated",
+                                actionLabel = "Dismiss",
+                            )
+                        }
+                    }
+                )
+            }
+
+            if (isDeleteDialogOpen) when (val selected = tableState.selectedItem) {
+                is MockUser -> DeleteMockUserDialog(
+                    onCancel = onCloseRequest,
+                    onConfirm = {
+                        coroutineScope.launch {
+                            viewModel.deleteUser(selected)
+                            onCloseRequest()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock user successfully deleted",
+                                actionLabel = "Dismiss",
+                            )
+                        }
+                    },
+                )
+                is MockData -> DeleteMockDataDialog(
+                    onCancel = onCloseRequest,
+                    onConfirm = {
+                        coroutineScope.launch {
+                            viewModel.deleteData(selected)
+                            onCloseRequest()
+                            snackbarHostState.showSnackbar(
+                                message = "Mock data successfully deleted",
+                                actionLabel = "Dismiss",
+                            )
+                        }
+                    },
+                )
+                else -> Unit
             }
         }
     }

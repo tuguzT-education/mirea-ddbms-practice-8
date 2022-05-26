@@ -13,9 +13,9 @@ fun CreateButtonRow(
 ) {
     ChoiceButtonRow(
         onClickCancel = onClickCancel,
-        cancelTooltip = "Cancel adding document ...",
+        cancelTooltip = "Cancel adding document",
         onClickConfirm = onClickConfirm,
-        confirmTooltip = "Confirm adding document ...",
+        confirmTooltip = "Confirm adding document",
         enabledConfirm = enabledConfirm,
         modifier = modifier,
     )
