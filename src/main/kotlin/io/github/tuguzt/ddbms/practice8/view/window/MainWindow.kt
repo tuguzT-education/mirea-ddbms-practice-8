@@ -29,6 +29,7 @@ import io.github.tuguzt.ddbms.practice8.view.viewModel
 import io.github.tuguzt.ddbms.practice8.view.window.table.DataTable
 import io.github.tuguzt.ddbms.practice8.view.window.table.rememberDataTableState
 import io.github.tuguzt.ddbms.practice8.view.window.table.rows
+import io.github.tuguzt.ddbms.practice8.view.window.table.whenLoading
 import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -57,6 +58,7 @@ private fun MainScreen(
     var searchText by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val tableState = rememberDataTableState<Identifiable<*>>()
     val focusManager = LocalFocusManager.current
 
     Scaffold(
@@ -76,7 +78,9 @@ private fun MainScreen(
                         else -> "Searching by \"$searchText\" completed"
                     }
                     coroutineScope.launch {
-                        viewModel.search(searchText)
+                        tableState.whenLoading {
+                            viewModel.search(searchText)
+                        }
                         snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
                     }
                 },
@@ -113,7 +117,9 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateUser = { user ->
                         coroutineScope.launch {
-                            viewModel.insertUser(user)
+                            tableState.whenLoading {
+                                viewModel.insertUser(user)
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully added",
                                 actionLabel = "Dismiss",
@@ -125,7 +131,9 @@ private fun MainScreen(
                     onCloseRequest = { isDialogOpen = false },
                     onCreateData = { data ->
                         coroutineScope.launch {
-                            viewModel.insertData(data)
+                            tableState.whenLoading {
+                                viewModel.insertData(data)
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully added",
                                 actionLabel = "Dismiss",
@@ -142,7 +150,6 @@ private fun MainScreen(
                 .fillMaxSize()
         ) {
             var dropdownExpanded by remember { mutableStateOf(false) }
-            val tableState = rememberDataTableState<Identifiable<*>>()
 
             DataTable(
                 modifier = Modifier
@@ -159,7 +166,9 @@ private fun MainScreen(
                             }
                             val message = "Sorting data by \"${property.name}\" field in $orderDescription order"
                             coroutineScope.launch {
-                                viewModel.sortByField(property.name, searchText)
+                                tableState.whenLoading {
+                                    viewModel.sortByField(property.name, searchText)
+                                }
                                 snackbarHostState.showSnackbar(message = message, actionLabel = "Dismiss")
                             }
                         }
@@ -233,8 +242,10 @@ private fun MainScreen(
                     user = selected,
                     onUpdateUser = { user ->
                         coroutineScope.launch {
-                            viewModel.updateUser(user)
-                            onCloseRequest()
+                            tableState.whenLoading {
+                                viewModel.updateUser(user)
+                                onCloseRequest()
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully updated",
                                 actionLabel = "Dismiss",
@@ -247,8 +258,10 @@ private fun MainScreen(
                     data = selected,
                     onUpdateData = { data ->
                         coroutineScope.launch {
-                            viewModel.updateData(data)
-                            onCloseRequest()
+                            tableState.whenLoading {
+                                viewModel.updateData(data)
+                                onCloseRequest()
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully updated",
                                 actionLabel = "Dismiss",
@@ -263,8 +276,10 @@ private fun MainScreen(
                     onCancel = onCloseRequest,
                     onConfirm = {
                         coroutineScope.launch {
-                            viewModel.deleteUser(selected)
-                            onCloseRequest()
+                            tableState.whenLoading {
+                                viewModel.deleteUser(selected)
+                                onCloseRequest()
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully deleted",
                                 actionLabel = "Dismiss",
@@ -276,8 +291,10 @@ private fun MainScreen(
                     onCancel = onCloseRequest,
                     onConfirm = {
                         coroutineScope.launch {
-                            viewModel.deleteData(selected)
-                            onCloseRequest()
+                            tableState.whenLoading {
+                                viewModel.deleteData(selected)
+                                onCloseRequest()
+                            }
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully deleted",
                                 actionLabel = "Dismiss",

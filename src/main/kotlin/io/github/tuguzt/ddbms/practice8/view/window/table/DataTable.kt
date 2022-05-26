@@ -1,5 +1,8 @@
 package io.github.tuguzt.ddbms.practice8.view.window.table
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
@@ -10,6 +13,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -21,6 +25,12 @@ import androidx.compose.ui.unit.dp
 import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
+private enum class TableDisplayState {
+    Loading,
+    Showing,
+}
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun <T> DataTable(
     header: TableHeaderScope.() -> Unit,
@@ -46,27 +56,37 @@ fun <T> DataTable(
             )
             Divider()
         }
-        // todo "add logic for displaying data loading with usage of LinearProgressIndicator
-        //  (it's not immediate, which is seen on app startup"
 
         val tableScope = TableScopeImpl(state)
         tableScope.content()
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (tableScope.isPresent()) {
-                val listState = rememberLazyListState()
+        val displayState = when {
+            state.isLoading -> TableDisplayState.Loading
+            tableScope.isPresent() -> TableDisplayState.Showing
+            else -> null
+        }
+        AnimatedVisibility(visible = displayState == TableDisplayState.Loading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
 
-                LazyColumn(state = listState, modifier = Modifier.matchParentSize()) {
-                    tableScope.inflate(lazyListScope = this)
+        Box(modifier = Modifier.fillMaxSize()) {
+            AnimatedContent(targetState = displayState) {
+                when (it) {
+                    TableDisplayState.Showing -> {
+                        val listState = rememberLazyListState()
+                        LazyColumn(state = listState, modifier = Modifier.matchParentSize()) {
+                            tableScope.inflate(lazyListScope = this)
+                        }
+                        VerticalScrollbar(
+                            adapter = rememberScrollbarAdapter(scrollState = listState),
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight(),
+                        )
+                    }
+                    TableDisplayState.Loading -> LoadingTableBanner()
+                    null -> EmptyTableBanner()
                 }
-                VerticalScrollbar(
-                    adapter = rememberScrollbarAdapter(scrollState = listState),
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .fillMaxHeight(),
-                )
-            } else {
-                EmptyTableBanner()
             }
         }
     }
@@ -80,6 +100,7 @@ private fun DataTablePreview() {
     Practice8Theme {
         Surface {
             DataTable<Pair<Int, String>>(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 header = {
                     column(weight = 1f) { OneLineText(text = "Index") }
                     column(weight = 2f) { OneLineText(text = "Name") }

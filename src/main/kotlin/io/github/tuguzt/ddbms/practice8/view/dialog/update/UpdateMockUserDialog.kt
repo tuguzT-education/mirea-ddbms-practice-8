@@ -63,10 +63,14 @@ private fun Content(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
+            @Suppress("NAME_SHADOWING")
             UpdateButtonRow(
                 onClickCancel = onCloseRequest,
                 onClickConfirm = update,
-                enabledConfirm = name != user.name || age.toIntOrNull() != user.age,
+                enabledConfirm = kotlin.run {
+                    val age = age.toIntOrNull() ?: return@run false
+                    name != user.name || age != user.age
+                },
                 modifier = Modifier.weight(1f),
             )
         }
