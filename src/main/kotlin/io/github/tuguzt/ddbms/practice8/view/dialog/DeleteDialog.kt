@@ -1,4 +1,4 @@
-package io.github.tuguzt.ddbms.practice8.view.dialog.delete
+package io.github.tuguzt.ddbms.practice8.view.dialog
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
@@ -14,8 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
-import io.github.tuguzt.ddbms.practice8.view.dialog.ChoiceButtonRow
-import io.github.tuguzt.ddbms.practice8.view.dialog.DialogSurface
+import io.github.tuguzt.ddbms.practice8.capitalize
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 
 @Composable
@@ -24,13 +23,14 @@ fun DeleteDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val deleteTitle = "delete $title"
     Dialog(
-        title = title,
+        title = deleteTitle.capitalize(),
         onCloseRequest = onCancel,
         resizable = false,
         state = rememberDialogState(height = 250.dp),
     ) {
-        Content(title = title, onConfirm = onConfirm, onCancel = onCancel)
+        Content(title = deleteTitle, onConfirm = onConfirm, onCancel = onCancel)
     }
 }
 
@@ -46,7 +46,7 @@ private fun Content(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Are you sure you want to ${title.lowercase()}?",
+                text = "Are you sure you want to $title?",
                 style = MaterialTheme.typography.h5,
                 modifier = Modifier.fillMaxWidth(fraction = 0.8f),
                 textAlign = TextAlign.Center,

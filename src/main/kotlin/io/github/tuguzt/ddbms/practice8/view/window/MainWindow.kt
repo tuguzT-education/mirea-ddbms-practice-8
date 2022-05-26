@@ -20,8 +20,7 @@ import io.github.tuguzt.ddbms.practice8.view.OneLineText
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.create.CreateMockUserDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockDataDialog
-import io.github.tuguzt.ddbms.practice8.view.dialog.delete.DeleteMockUserDialog
+import io.github.tuguzt.ddbms.practice8.view.dialog.DeleteDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockDataDialog
 import io.github.tuguzt.ddbms.practice8.view.dialog.update.UpdateMockUserDialog
 import io.github.tuguzt.ddbms.practice8.view.title
@@ -118,7 +117,7 @@ private fun MainScreen(
                     onCreateUser = { user ->
                         coroutineScope.launch {
                             tableState.whenLoading {
-                                viewModel.insertUser(user)
+                                viewModel.insert(user)
                             }
                             snackbarHostState.showSnackbar(
                                 message = "Mock user successfully added",
@@ -132,7 +131,7 @@ private fun MainScreen(
                     onCreateData = { data ->
                         coroutineScope.launch {
                             tableState.whenLoading {
-                                viewModel.insertData(data)
+                                viewModel.insert(data)
                             }
                             snackbarHostState.showSnackbar(
                                 message = "Mock data successfully added",
@@ -243,7 +242,7 @@ private fun MainScreen(
                     onUpdateUser = { user ->
                         coroutineScope.launch {
                             tableState.whenLoading {
-                                viewModel.updateUser(user)
+                                viewModel.update(user)
                                 onCloseRequest()
                             }
                             snackbarHostState.showSnackbar(
@@ -259,7 +258,7 @@ private fun MainScreen(
                     onUpdateData = { data ->
                         coroutineScope.launch {
                             tableState.whenLoading {
-                                viewModel.updateData(data)
+                                viewModel.update(data)
                                 onCloseRequest()
                             }
                             snackbarHostState.showSnackbar(
@@ -287,22 +286,42 @@ private fun MainScreen(
                         }
                     },
                 )
-                is MockData -> DeleteMockDataDialog(
+//                is MockData -> UpdateDialog(
+//                    onCloseRequest = onCloseRequest,
+//                    item = selected,
+//                    onUpdateItem = { item ->
+//                        coroutineScope.launch {
+//                            viewModel.update(item)
+//                            onCloseRequest()
+//                            snackbarHostState.showSnackbar(
+//                                message = "${item::class.simpleName} successfully updated",
+//                                actionLabel = "Dismiss",
+//                            )
+//                        }
+//                    }
+//                )
+            }
+
+            if (isDeleteDialogOpen) {
+                val selected = requireNotNull(tableState.selectedItem)
+                val className = selected::class.simpleName
+                DeleteDialog(
+                    title = "$className",
                     onCancel = onCloseRequest,
                     onConfirm = {
                         coroutineScope.launch {
+                            onCloseRequest()
                             tableState.whenLoading {
-                                viewModel.deleteData(selected)
+                                viewModel.delete(selected)
                                 onCloseRequest()
                             }
                             snackbarHostState.showSnackbar(
-                                message = "Mock data successfully deleted",
+                                message = "$className successfully deleted",
                                 actionLabel = "Dismiss",
                             )
                         }
                     },
                 )
-                else -> Unit
             }
         }
     }
