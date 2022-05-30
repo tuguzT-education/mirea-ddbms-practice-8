@@ -40,19 +40,19 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
     val selectedCollectionClass = _selectedCollectionClass.asStateFlow()
 
     private val manufacturerFieldSortOrders = linkedMapOf<KProperty1<Manufacturer, *>, Boolean>()
-    private val manufacturerFields = listOf(Manufacturer::name, Manufacturer::description)
+    private val manufacturerFields = listOf(Manufacturer::description, Manufacturer::name)
 
     private val orderFieldSortOrders = linkedMapOf<KProperty1<Order, *>, Boolean>()
     private val orderFields = listOf(Order::items)
 
     private val productFieldSortOrders = linkedMapOf<KProperty1<Product, *>, Boolean>()
-    private val productFields = listOf(Product::name, Product::description, Product::price, Product::quantity)
+    private val productFields = listOf(Product::description, Product::name, Product::price, Product::quantity)
 
     private val productCategoryFieldSortOrders = linkedMapOf<KProperty1<ProductCategory, *>, Boolean>()
-    private val productCategoryFields = listOf(ProductCategory::name, ProductCategory::description)
+    private val productCategoryFields = listOf(ProductCategory::description, ProductCategory::name)
 
     private val userFieldSortOrders = linkedMapOf<KProperty1<User, *>, Boolean>()
-    private val userFields = listOf(User::name, User::surname, User::email, User::phoneNumber)
+    private val userFields = listOf(User::email, User::name, User::phoneNumber, User::surname)
 
     init {
         viewModelScope.launch {
