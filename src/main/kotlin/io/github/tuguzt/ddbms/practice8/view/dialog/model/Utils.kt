@@ -1,6 +1,7 @@
 package io.github.tuguzt.ddbms.practice8.view.dialog.model
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.github.tuguzt.ddbms.practice8.view.dialog.ChoiceButtonRow
@@ -13,7 +14,7 @@ fun TextFieldContainer(
     enabledConfirm: Boolean,
     onCloseRequest: () -> Unit,
     onClickConfirm: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) = DialogSurface {
     Column(modifier = Modifier.matchParentSize()) {
         content()

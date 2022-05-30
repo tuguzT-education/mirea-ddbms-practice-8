@@ -29,6 +29,7 @@ import io.github.tuguzt.ddbms.practice8.view.window.topbar.TopBar
 import io.github.tuguzt.ddbms.practice8.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
@@ -42,6 +43,8 @@ fun MainWindow(
         MainScreen(viewModel = viewModel, coroutineScope = coroutineScope)
     }
 }
+
+private val logger = KotlinLogging.logger {}
 
 @Composable
 private fun MainScreen(
@@ -65,7 +68,8 @@ private fun MainScreen(
         )
     }
 
-    val onFailure: suspend () -> Unit = {
+    val onFailure: suspend (Throwable) -> Unit = {
+        logger.error(it) { "Something went wrong" }
         snackbarHostState.showSnackbar(
             message = "Something went wrong...",
             actionLabel = "Dismiss",
@@ -272,11 +276,11 @@ private fun MainScreen(
 private suspend inline fun handleError(
     crossinline action: suspend () -> Result<Unit>,
     crossinline onSuccess: suspend () -> Unit,
-    crossinline onFailure: suspend () -> Unit,
+    crossinline onFailure: suspend (Throwable) -> Unit,
 ) {
     val result = action()
     when {
         result.isSuccess -> onSuccess()
-        else -> onFailure()
+        else -> onFailure(result.exceptionOrNull()!!)
     }
 }

@@ -6,9 +6,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
 import io.github.tuguzt.ddbms.practice8.capitalize
-import io.github.tuguzt.ddbms.practice8.model.Identifiable
-import io.github.tuguzt.ddbms.practice8.model.MockData
-import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.model.*
 import io.github.tuguzt.ddbms.practice8.view.dialog.model.*
 import io.github.tuguzt.ddbms.practice8.view.theme.Practice8Theme
 import kotlin.reflect.KClass
@@ -78,28 +76,61 @@ private fun Content(
 ) {
     when (identifiable) {
         // update data by data class of table
-        is MockUser -> MockUserContent(
+        is User -> UserContent(
             user = identifiable,
             actionText = actionText,
             onApplyToUser = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
-        is MockData -> MockDataContent(
-            data = identifiable,
+        is Manufacturer -> ManufacturerContent(
+            manufacturer = identifiable,
             actionText = actionText,
-            onApplyToData = onApplyToItem,
+            onApplyToManufacturer = onApplyToItem,
+            onCloseRequest = onCloseRequest,
+        )
+        is Order -> OrderContent(
+            order = identifiable,
+            actionText = actionText,
+            onApplyToOrder = onApplyToItem,
+            onCloseRequest = onCloseRequest,
+        )
+        is Product -> ProductContent(
+            product = identifiable,
+            actionText = actionText,
+            onApplyToProduct = onApplyToItem,
+            onCloseRequest = onCloseRequest,
+        )
+        is ProductCategory -> ProductCategoryContent(
+            category = identifiable,
+            actionText = actionText,
+            onApplyToCategory = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
         else -> when (kClass) {
             // create data by data class of table
-            MockUser::class -> MockUserContent(
+            User::class -> UserContent(
                 actionText = actionText,
                 onApplyToUser = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
-            MockData::class -> MockDataContent(
+            Manufacturer::class -> ManufacturerContent(
                 actionText = actionText,
-                onApplyToData = onApplyToItem,
+                onApplyToManufacturer = onApplyToItem,
+                onCloseRequest = onCloseRequest,
+            )
+            Order::class -> OrderContent(
+                actionText = actionText,
+                onApplyToOrder = onApplyToItem,
+                onCloseRequest = onCloseRequest,
+            )
+            Product::class -> ProductContent(
+                actionText = actionText,
+                onApplyToProduct = onApplyToItem,
+                onCloseRequest = onCloseRequest,
+            )
+            ProductCategory::class -> ProductCategoryContent(
+                actionText = actionText,
+                onApplyToCategory = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
             else -> throw IllegalArgumentException(
@@ -115,9 +146,9 @@ private fun UpdateDialogPreview() {
     Practice8Theme {
         Content(
             actionText = "updat",
-            identifiable = MockData(data1 = -341, data2 = "eri", data3 = 54347),
-            onApplyToItem = { },
-            onCloseRequest = { },
+            onApplyToItem = {},
+            onCloseRequest = {},
+            kClass = User::class,
         )
     }
 }

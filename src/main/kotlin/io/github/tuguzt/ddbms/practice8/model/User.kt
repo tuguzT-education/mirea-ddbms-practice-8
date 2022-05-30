@@ -6,8 +6,10 @@ import kotlinx.serialization.Serializable
 import org.litote.kmongo.Id
 
 @Serializable
-data class MockUser(
+data class User(
     val name: String,
-    val age: Int,
-    @Contextual @SerialName("_id") override val id: Id<MockUser>? = null,
-) : Identifiable<MockUser>()
+    val surname: String,
+    val email: String?,
+    val phoneNumber: ULong,
+    @Contextual @SerialName("_id") override val id: Id<User>? = null,
+) : Identifiable<User>()

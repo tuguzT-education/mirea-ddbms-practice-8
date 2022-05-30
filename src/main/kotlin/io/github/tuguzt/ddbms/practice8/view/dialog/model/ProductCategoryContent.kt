@@ -5,36 +5,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.tuguzt.ddbms.practice8.model.Identifiable
-import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.model.ProductCategory
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.OutlinedSingleLineTextField
 
 @Composable
-fun MockUserContent(
+fun ProductCategoryContent(
     actionText: String,
     onCloseRequest: () -> Unit,
-    onApplyToUser: (Identifiable<*>) -> Unit,
-    user: MockUser? = null,
+    onApplyToCategory: (ProductCategory) -> Unit,
+    category: ProductCategory? = null,
 ) {
-    var name by remember { mutableStateOf(user?.name ?: "") }
-    var age by remember { mutableStateOf(if (user != null) "${user.age}" else "") }
+    var name by remember { mutableStateOf(category?.name.orEmpty()) }
+    var description by remember { mutableStateOf(category?.description.orEmpty()) }
 
     val onClickConfirm = {
-        if (user == null) {
+        if (category == null) {
             onCloseRequest()
-            onApplyToUser(MockUser(name, age.toInt()))
-        } else onApplyToUser(MockUser(name, age.toInt(), user.id))
+            onApplyToCategory(ProductCategory(name, description))
+        } else onApplyToCategory(ProductCategory(name, description, category.id))
     }
 
     @Suppress("NAME_SHADOWING")
     val enabledConfirm =
-        if (user == null)
-            name.isNotBlank() && age.toIntOrNull() != null
-        else run {
-            val age = age.toIntOrNull() ?: return@run false
-            name != user.name || age != user.age
-        }
+        if (category == null) name.isNotBlank() && description.isNotBlank()
+        else name != category.name || description != category.description
 
     TextFieldContainer(
         actionText = actionText,
@@ -51,11 +46,11 @@ fun MockUserContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Tooltip(text = "Input field for \"age\"") {
+        Tooltip(text = "Input field for \"description\"") {
             OutlinedSingleLineTextField(
-                text = "Age",
-                value = age,
-                onValueChange = { age = it },
+                text = "Description",
+                value = description,
+                onValueChange = { description = it },
             )
         }
         Spacer(modifier = Modifier.height(16.dp))

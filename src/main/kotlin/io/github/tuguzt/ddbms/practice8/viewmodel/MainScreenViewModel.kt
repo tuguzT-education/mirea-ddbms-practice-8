@@ -1,61 +1,73 @@
 package io.github.tuguzt.ddbms.practice8.viewmodel
 
-import io.github.tuguzt.ddbms.practice8.docker.identifier
 import io.github.tuguzt.ddbms.practice8.escapeRegex
-import io.github.tuguzt.ddbms.practice8.model.Identifiable
-import io.github.tuguzt.ddbms.practice8.model.MockData
-import io.github.tuguzt.ddbms.practice8.model.MockUser
+import io.github.tuguzt.ddbms.practice8.model.*
 import io.github.tuguzt.ddbms.practice8.regex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import org.litote.kmongo.coroutine.CoroutineClient
+import org.litote.kmongo.EMPTY_BSON
 import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.updateOne
 import org.litote.kmongo.regex
 import org.litote.kmongo.textIndex
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
 
-// todo "add support for all tables (at least 5)"
-class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClient) : ViewModel(viewModelScope) {
+class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDatabase) : ViewModel(viewModelScope) {
     companion object {
         private val logger = KotlinLogging.logger {}
     }
 
-    private val database = client.getDatabase(identifier)
+    private val manufacturerCollection = database.getCollection<Manufacturer>()
+    private val orderCollection = database.getCollection<Order>()
+    private val productCollection = database.getCollection<Product>()
+    private val productCategoryCollection = database.getCollection<ProductCategory>()
+    private val userCollection = database.getCollection<User>()
 
-    private val userCollection = database.getCollection<MockUser>()
-    private val dataCollection = database.getCollection<MockData>()
-
-    init {
-        viewModelScope.launch {
-            userCollection.createIndex(MockUser::name.textIndex())
-            userCollection.createIndex(MockUser::age.textIndex())
-
-            dataCollection.createIndex(MockData::data1.textIndex())
-            dataCollection.createIndex(MockData::data2.textIndex())
-            dataCollection.createIndex(MockData::data3.textIndex())
-        }
-    }
-
-    val collectionClasses = listOf(MockUser::class, MockData::class)
+    val collectionClasses = listOf(
+        Manufacturer::class,
+        Order::class,
+        Product::class,
+        ProductCategory::class,
+        User::class,
+    )
 
     private val _selectedCollectionClass = MutableStateFlow(collectionClasses.first())
     val selectedCollectionClass = _selectedCollectionClass.asStateFlow()
 
-    private val userCollectionFieldSortOrders = linkedMapOf<KProperty1<MockUser, *>, Boolean>()
-    private val userCollectionFields = listOf(MockUser::name, MockUser::age)
+    private val manufacturerFieldSortOrders = linkedMapOf<KProperty1<Manufacturer, *>, Boolean>()
+    private val manufacturerFields = listOf(Manufacturer::name, Manufacturer::description)
 
-    private val dataCollectionFieldSortOrders = linkedMapOf<KProperty1<MockData, *>, Boolean>()
-    private val dataCollectionFields = listOf(MockData::data1, MockData::data2, MockData::data3)
+    private val orderFieldSortOrders = linkedMapOf<KProperty1<Order, *>, Boolean>()
+    private val orderFields = listOf(Order::items)
 
-    private val _selectedField: MutableStateFlow<KProperty1<out Identifiable<*>, *>> =
-        MutableStateFlow(userCollectionFields.first())
+    private val productFieldSortOrders = linkedMapOf<KProperty1<Product, *>, Boolean>()
+    private val productFields = listOf(Product::name, Product::description, Product::price, Product::quantity)
+
+    private val productCategoryFieldSortOrders = linkedMapOf<KProperty1<ProductCategory, *>, Boolean>()
+    private val productCategoryFields = listOf(ProductCategory::name, ProductCategory::description)
+
+    private val userFieldSortOrders = linkedMapOf<KProperty1<User, *>, Boolean>()
+    private val userFields = listOf(User::name, User::surname, User::email, User::phoneNumber)
+
+    init {
+        viewModelScope.launch {
+            manufacturerFields.forEach { manufacturerCollection.createIndex(it.textIndex()) }
+            orderFields.forEach { orderCollection.createIndex(it.textIndex()) }
+            productFields.forEach { productCollection.createIndex(it.textIndex()) }
+            productCategoryFields.forEach { productCategoryCollection.createIndex(it.textIndex()) }
+            userFields.forEach { userCollection.createIndex(it.textIndex()) }
+        }
+    }
+
+    private val _selectedField = MutableStateFlow(userFields.first().name)
 
     private val _fields: MutableStateFlow<List<KProperty1<out Identifiable<*>, *>>> =
-        MutableStateFlow(userCollectionFields)
+        MutableStateFlow(userFields)
     val fields = _fields.asStateFlow()
 
     private val _tableRows = MutableStateFlow(listOf<Identifiable<*>>())
@@ -75,8 +87,15 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         }
 
         when (selectedCollectionClass.value) {
-            MockUser::class -> actualUpdate(userCollection, userCollectionFields, userCollectionFieldSortOrders)
-            MockData::class -> actualUpdate(dataCollection, dataCollectionFields, dataCollectionFieldSortOrders)
+            Manufacturer::class -> actualUpdate(manufacturerCollection, manufacturerFields, manufacturerFieldSortOrders)
+            Order::class -> actualUpdate(orderCollection, orderFields, orderFieldSortOrders)
+            Product::class -> actualUpdate(productCollection, productFields, productFieldSortOrders)
+            ProductCategory::class -> actualUpdate(
+                productCategoryCollection,
+                productCategoryFields,
+                productCategoryFieldSortOrders,
+            )
+            User::class -> actualUpdate(userCollection, userFields, userFieldSortOrders)
             else -> throw IllegalStateException("Wrong selected collection name")
         }
     }
@@ -89,30 +108,42 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
 
     suspend fun selectField(name: String) {
         _selectedField.emit(
-            value = userCollectionFields.find { it.name == name }
-                ?: dataCollectionFields.find { it.name == name }
+            value = manufacturerFields.find { it.name == name }?.name
+                ?: orderFields.find { it.name == name }?.name
+                ?: productFields.find { it.name == name }?.name
+                ?: productCategoryFields.find { it.name == name }?.name
+                ?: userFields.find { it.name == name }?.name
                 ?: throw IllegalArgumentException("Wrong field name")
         )
     }
 
     suspend fun insert(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is MockUser -> userCollection.save(item)
-            is MockData -> dataCollection.save(item)
+            is Manufacturer -> manufacturerCollection.save(item)
+            is Order -> orderCollection.save(item)
+            is Product -> productCollection.save(item)
+            is ProductCategory -> productCategoryCollection.save(item)
+            is User -> userCollection.save(item)
         }
     }
 
     suspend fun update(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is MockUser -> userCollection.updateOne(item)
-            is MockData -> dataCollection.updateOne(item)
+            is Manufacturer -> manufacturerCollection.updateOne(item)
+            is Order -> orderCollection.updateOne(item)
+            is Product -> productCollection.updateOne(item)
+            is ProductCategory -> productCategoryCollection.updateOne(item)
+            is User -> userCollection.updateOne(item)
         }
     }
 
     suspend fun delete(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is MockUser -> userCollection.deleteOneById(requireNotNull(item.id))
-            is MockData -> dataCollection.deleteOneById(requireNotNull(item.id))
+            is Manufacturer -> manufacturerCollection.deleteOneById(requireNotNull(item.id))
+            is Order -> orderCollection.deleteOneById(requireNotNull(item.id))
+            is Product -> productCollection.deleteOneById(requireNotNull(item.id))
+            is ProductCategory -> productCategoryCollection.deleteOneById(requireNotNull(item.id))
+            is User -> userCollection.deleteOneById(requireNotNull(item.id))
         }
     }
 
@@ -120,29 +151,37 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
         logger.debug { "Requested field name: $fieldName" }
 
         when (selectedCollectionClass.value) {
-            MockUser::class -> manageFieldSortOrder(
+            Manufacturer::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = userCollectionFieldSortOrders,
-                property = when (fieldName) {
-                    MockUser::name.name -> MockUser::name
-                    MockUser::age.name -> MockUser::age
-                    else -> throw IllegalArgumentException("Wrong field name passed.")
-                },
+                fieldSortOrders = manufacturerFieldSortOrders,
+                property = Manufacturer::class.memberProperties.find { it.name == fieldName }
+                    ?: throw IllegalArgumentException("Wrong field name passed.")
             )
-            MockData::class -> manageFieldSortOrder(
+            Order::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = dataCollectionFieldSortOrders,
-                property = when (fieldName) {
-                    MockData::data1.name -> MockData::data1
-                    MockData::data2.name -> MockData::data2
-                    MockData::data3.name -> MockData::data3
-                    else -> throw IllegalArgumentException("Wrong field name passed.")
-                }
+                fieldSortOrders = orderFieldSortOrders,
+                property = Order::class.memberProperties.find { it.name == fieldName }
+                    ?: throw IllegalArgumentException("Wrong field name passed.")
+            )
+            Product::class -> manageFieldSortOrder(
+                fieldName = fieldName,
+                fieldSortOrders = productFieldSortOrders,
+                property = Product::class.memberProperties.find { it.name == fieldName }
+                    ?: throw IllegalArgumentException("Wrong field name passed.")
+            )
+            ProductCategory::class -> manageFieldSortOrder(
+                fieldName = fieldName,
+                fieldSortOrders = productCategoryFieldSortOrders,
+                property = ProductCategory::class.memberProperties.find { it.name == fieldName }
+                    ?: throw IllegalArgumentException("Wrong field name passed.")
+            )
+            User::class -> manageFieldSortOrder(
+                fieldName = fieldName,
+                fieldSortOrders = userFieldSortOrders,
+                property = User::class.memberProperties.find { it.name == fieldName }
+                    ?: throw IllegalArgumentException("Wrong field name passed.")
             )
         }
-
-        logger.debug { "Sort order for User: $userCollectionFieldSortOrders" }
-        logger.debug { "Sort order for Data: $dataCollectionFieldSortOrders" }
 
         search(searchText)
     }
@@ -154,22 +193,51 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, client: CoroutineClien
 
             _tableRows.emit(
                 when (selectedCollectionClass.value) {
-                    MockUser::class -> combineFindSort(
-                        userCollection,
-                        userCollectionFieldSortOrders,
+                    Manufacturer::class -> combineFindSort(
+                        manufacturerCollection,
+                        manufacturerFieldSortOrders,
                         when (_selectedField.value) {
-                            MockUser::name -> MockUser::name regex regex
-                            MockUser::age -> MockUser::age regex regex
+                            Manufacturer::name.name -> Manufacturer::name regex regex
+                            Manufacturer::description.name -> Manufacturer::description regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )
-                    MockData::class -> combineFindSort(
-                        dataCollection,
-                        dataCollectionFieldSortOrders,
+                    Order::class -> combineFindSort(
+                        orderCollection,
+                        orderFieldSortOrders,
                         when (_selectedField.value) {
-                            MockData::data1 -> MockData::data1 regex regex
-                            MockData::data2 -> MockData::data2 regex regex
-                            MockData::data3 -> MockData::data3 regex regex
+                            Order::items.name -> EMPTY_BSON
+                            else -> throw IllegalStateException("Wrong selected field name")
+                        }
+                    )
+                    Product::class -> combineFindSort(
+                        productCollection,
+                        productFieldSortOrders,
+                        when (_selectedField.value) {
+                            Product::name.name -> Product::name regex regex
+                            Product::description.name -> Product::description regex regex
+                            Product::price.name -> Product::price regex regex
+                            Product::quantity.name -> Product::quantity regex regex
+                            else -> throw IllegalStateException("Wrong selected field name")
+                        }
+                    )
+                    ProductCategory::class -> combineFindSort(
+                        productCategoryCollection,
+                        productCategoryFieldSortOrders,
+                        when (_selectedField.value) {
+                            ProductCategory::name.name -> ProductCategory::name regex regex
+                            ProductCategory::description.name -> ProductCategory::description regex regex
+                            else -> throw IllegalStateException("Wrong selected field name")
+                        }
+                    )
+                    User::class -> combineFindSort(
+                        userCollection,
+                        userFieldSortOrders,
+                        when (_selectedField.value) {
+                            User::name.name -> User::name regex regex
+                            User::surname.name -> User::surname regex regex
+                            User::email.name -> User::email regex regex
+                            User::phoneNumber.name -> User::phoneNumber regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )

@@ -6,9 +6,8 @@ import kotlinx.serialization.Serializable
 import org.litote.kmongo.Id
 
 @Serializable
-data class MockData(
-    val data1: Int,
-    val data2: String,
-    val data3: Long,
-    @Contextual @SerialName("_id") override val id: Id<MockData>? = null,
-) : Identifiable<MockData>()
+data class ProductCategory(
+    val name: String,
+    val description: String,
+    @Contextual @SerialName("_id") override val id: Id<ProductCategory>? = null,
+) : Identifiable<ProductCategory>()
