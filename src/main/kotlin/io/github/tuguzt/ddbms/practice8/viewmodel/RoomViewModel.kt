@@ -1,12 +1,12 @@
 package io.github.tuguzt.ddbms.practice8.viewmodel
 
-import io.github.tuguzt.ddbms.practice8.model.Product
+import io.github.tuguzt.ddbms.practice8.model.Room
 import kotlinx.coroutines.CoroutineScope
 import org.litote.kmongo.coroutine.CoroutineCollection
 
-class ProductViewModel(
+class RoomViewModel(
     viewModelScope: CoroutineScope,
-    private val collection: CoroutineCollection<Product>,
+    private val collection: CoroutineCollection<Room>,
 ) : ViewModel(viewModelScope) {
-    suspend fun getAll(): List<Product> = collection.find().toList()
+    suspend fun getAll(): List<Room> = collection.find().toList()
 }

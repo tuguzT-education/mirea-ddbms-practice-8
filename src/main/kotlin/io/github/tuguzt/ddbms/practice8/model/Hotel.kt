@@ -6,10 +6,10 @@ import kotlinx.serialization.Serializable
 import org.litote.kmongo.Id
 
 @Serializable
-data class User(
+class Hotel(
     val name: String,
-    val surname: String,
-    val email: String?,
-    val phoneNumber: ULong,
-    @Contextual @SerialName("_id") override val id: Id<User>? = null,
-) : Identifiable<User>()
+    val floorMax: Int,
+    @Contextual val hotelChainId: Id<HotelChain>,
+    val description: String,
+    @Contextual @SerialName("_id") override val id: Id<Hotel>? = null,
+) : Identifiable<Hotel>()

@@ -17,21 +17,26 @@ val appModule = module {
 
     single {
         val database = get<CoroutineDatabase>()
-        ProductViewModel(viewModelScope = get(), collection = database.getCollection())
+        HotelChainViewModel(viewModelScope = get(), collection = database.getCollection())
     }
 
     single {
         val database = get<CoroutineDatabase>()
-        ProductCategoryViewModel(viewModelScope = get(), collection = database.getCollection())
+        HotelViewModel(viewModelScope = get(), collection = database.getCollection())
     }
 
     single {
         val database = get<CoroutineDatabase>()
-        ManufacturerViewModel(viewModelScope = get(), collection = database.getCollection())
+        RoomViewModel(viewModelScope = get(), collection = database.getCollection())
     }
 
     single {
         val database = get<CoroutineDatabase>()
-        UserViewModel(viewModelScope = get(), collection = database.getCollection())
+        BookingViewModel(viewModelScope = get(), collection = database.getCollection())
+    }
+
+    single {
+        val database = get<CoroutineDatabase>()
+        ClientViewModel(viewModelScope = get(), collection = database.getCollection())
     }
 }

@@ -6,8 +6,11 @@ import kotlinx.serialization.Serializable
 import org.litote.kmongo.Id
 
 @Serializable
-data class ProductCategory(
+class Client(
+    val sex: String,
+    val age: Int,
     val name: String,
-    val description: String,
-    @Contextual @SerialName("_id") override val id: Id<ProductCategory>? = null,
-) : Identifiable<ProductCategory>()
+    val surname: String,
+    @Contextual val bookingId: Id<Booking>,
+    @Contextual @SerialName("_id") override val id: Id<Client>? = null,
+) : Identifiable<Client>()

@@ -5,31 +5,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.tuguzt.ddbms.practice8.model.ProductCategory
+import io.github.tuguzt.ddbms.practice8.model.HotelChain
 import io.github.tuguzt.ddbms.practice8.view.Tooltip
 import io.github.tuguzt.ddbms.practice8.view.dialog.OutlinedSingleLineTextField
 
 @Composable
-fun ProductCategoryContent(
+fun HotelChainContent(
     actionText: String,
     onCloseRequest: () -> Unit,
-    onApplyToCategory: (ProductCategory) -> Unit,
-    category: ProductCategory? = null,
+    onApplyToHotelChain: (HotelChain) -> Unit,
+    hotelChain: HotelChain? = null,
 ) {
-    var name by remember { mutableStateOf(category?.name.orEmpty()) }
-    var description by remember { mutableStateOf(category?.description.orEmpty()) }
+    var name by remember { mutableStateOf(hotelChain?.name.orEmpty()) }
+    var description by remember { mutableStateOf(hotelChain?.description.orEmpty()) }
 
     val onClickConfirm = {
-        if (category == null) {
+        if (hotelChain == null) {
             onCloseRequest()
-            onApplyToCategory(ProductCategory(name, description))
-        } else onApplyToCategory(ProductCategory(name, description, category.id))
+            onApplyToHotelChain(HotelChain(name, description))
+        } else onApplyToHotelChain(HotelChain(name, description, hotelChain.id))
     }
 
     @Suppress("NAME_SHADOWING")
     val enabledConfirm =
-        if (category == null) name.isNotBlank() && description.isNotBlank()
-        else name != category.name || description != category.description
+        if (hotelChain == null) name.isNotBlank() && description.isNotBlank()
+        else name != hotelChain.name || description != hotelChain.description
 
     TextFieldContainer(
         actionText = actionText,

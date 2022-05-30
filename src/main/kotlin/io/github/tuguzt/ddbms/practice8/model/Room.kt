@@ -6,8 +6,11 @@ import kotlinx.serialization.Serializable
 import org.litote.kmongo.Id
 
 @Serializable
-data class Manufacturer(
-    val name: String,
+class Room(
+    val floor: Int,
+    @Contextual val hotelId: Id<Hotel>,
+    val number: Int,
     val description: String,
-    @Contextual @SerialName("_id") override val id: Id<Manufacturer>? = null,
-) : Identifiable<Manufacturer>()
+    val guestCountMax: Int,
+    @Contextual @SerialName("_id") override val id: Id<Room>? = null,
+) : Identifiable<Room>()

@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import org.litote.kmongo.EMPTY_BSON
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.updateOne
@@ -22,52 +21,52 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
         private val logger = KotlinLogging.logger {}
     }
 
-    private val manufacturerCollection = database.getCollection<Manufacturer>()
-    private val orderCollection = database.getCollection<Order>()
-    private val productCollection = database.getCollection<Product>()
-    private val productCategoryCollection = database.getCollection<ProductCategory>()
-    private val userCollection = database.getCollection<User>()
+    private val hotelChainCollection = database.getCollection<HotelChain>()
+    private val hotelCollection = database.getCollection<Hotel>()
+    private val roomCollection = database.getCollection<Room>()
+    private val bookingCollection = database.getCollection<Booking>()
+    private val clientCollection = database.getCollection<Client>()
 
     val collectionClasses = listOf(
-        Manufacturer::class,
-        Order::class,
-        Product::class,
-        ProductCategory::class,
-        User::class,
+        HotelChain::class,
+        Hotel::class,
+        Room::class,
+        Booking::class,
+        Client::class,
     )
 
     private val _selectedCollectionClass = MutableStateFlow(collectionClasses.first())
     val selectedCollectionClass = _selectedCollectionClass.asStateFlow()
 
-    private val manufacturerFieldSortOrders = linkedMapOf<KProperty1<Manufacturer, *>, Boolean>()
-    private val manufacturerFields = listOf(Manufacturer::name, Manufacturer::description)
+    private val hotelChainFieldSortOrders = linkedMapOf<KProperty1<HotelChain, *>, Boolean>()
+    private val hotelChainFields = listOf(HotelChain::description, HotelChain::name)
 
-    private val orderFieldSortOrders = linkedMapOf<KProperty1<Order, *>, Boolean>()
-    private val orderFields = listOf(Order::items)
+    private val hotelFieldSortOrders = linkedMapOf<KProperty1<Hotel, *>, Boolean>()
+    private val hotelFields = listOf(Hotel::description, Hotel::floorMax, Hotel::name)
 
-    private val productFieldSortOrders = linkedMapOf<KProperty1<Product, *>, Boolean>()
-    private val productFields = listOf(Product::name, Product::description, Product::price, Product::quantity)
+    private val roomFieldSortOrders = linkedMapOf<KProperty1<Room, *>, Boolean>()
+    private val roomFields = listOf(Room::description, Room::floor, Room::guestCountMax, Room::number)
 
-    private val productCategoryFieldSortOrders = linkedMapOf<KProperty1<ProductCategory, *>, Boolean>()
-    private val productCategoryFields = listOf(ProductCategory::name, ProductCategory::description)
+    private val bookingFieldSortOrders = linkedMapOf<KProperty1<Booking, *>, Boolean>()
+    private val bookingFields = listOf(Booking::description, Booking::guestCount)
 
-    private val userFieldSortOrders = linkedMapOf<KProperty1<User, *>, Boolean>()
-    private val userFields = listOf(User::name, User::surname, User::email, User::phoneNumber)
+    private val clientFieldSortOrders = linkedMapOf<KProperty1<Client, *>, Boolean>()
+    private val clientFields = listOf(Client::age, Client::name, Client::sex, Client::surname)
 
     init {
         viewModelScope.launch {
-            manufacturerFields.forEach { manufacturerCollection.createIndex(it.textIndex()) }
-            orderFields.forEach { orderCollection.createIndex(it.textIndex()) }
-            productFields.forEach { productCollection.createIndex(it.textIndex()) }
-            productCategoryFields.forEach { productCategoryCollection.createIndex(it.textIndex()) }
-            userFields.forEach { userCollection.createIndex(it.textIndex()) }
+            hotelChainFields.forEach { hotelChainCollection.createIndex(it.textIndex()) }
+            hotelFields.forEach { hotelCollection.createIndex(it.textIndex()) }
+            roomFields.forEach { roomCollection.createIndex(it.textIndex()) }
+            bookingFields.forEach { bookingCollection.createIndex(it.textIndex()) }
+            clientFields.forEach { clientCollection.createIndex(it.textIndex()) }
         }
     }
 
-    private val _selectedField = MutableStateFlow(userFields.first().name)
+    private val _selectedField = MutableStateFlow(hotelChainFields.first().name)
 
     private val _fields: MutableStateFlow<List<KProperty1<out Identifiable<*>, *>>> =
-        MutableStateFlow(userFields)
+        MutableStateFlow(hotelChainFields)
     val fields = _fields.asStateFlow()
 
     private val _tableRows = MutableStateFlow(listOf<Identifiable<*>>())
@@ -87,15 +86,11 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
         }
 
         when (selectedCollectionClass.value) {
-            Manufacturer::class -> actualUpdate(manufacturerCollection, manufacturerFields, manufacturerFieldSortOrders)
-            Order::class -> actualUpdate(orderCollection, orderFields, orderFieldSortOrders)
-            Product::class -> actualUpdate(productCollection, productFields, productFieldSortOrders)
-            ProductCategory::class -> actualUpdate(
-                productCategoryCollection,
-                productCategoryFields,
-                productCategoryFieldSortOrders,
-            )
-            User::class -> actualUpdate(userCollection, userFields, userFieldSortOrders)
+            HotelChain::class -> actualUpdate(hotelChainCollection, hotelChainFields, hotelChainFieldSortOrders,)
+            Hotel::class -> actualUpdate(hotelCollection, hotelFields, hotelFieldSortOrders,)
+            Room::class -> actualUpdate(roomCollection, roomFields, roomFieldSortOrders,)
+            Booking::class -> actualUpdate(bookingCollection, bookingFields, bookingFieldSortOrders,)
+            Client::class -> actualUpdate(clientCollection, clientFields, clientFieldSortOrders,)
             else -> throw IllegalStateException("Wrong selected collection name")
         }
     }
@@ -108,42 +103,42 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
 
     suspend fun selectField(name: String) {
         _selectedField.emit(
-            value = manufacturerFields.find { it.name == name }?.name
-                ?: orderFields.find { it.name == name }?.name
-                ?: productFields.find { it.name == name }?.name
-                ?: productCategoryFields.find { it.name == name }?.name
-                ?: userFields.find { it.name == name }?.name
+            value = hotelChainFields.find { it.name == name }?.name
+                ?: hotelFields.find { it.name == name }?.name
+                ?: roomFields.find { it.name == name }?.name
+                ?: bookingFields.find { it.name == name }?.name
+                ?: clientFields.find { it.name == name }?.name
                 ?: throw IllegalArgumentException("Wrong field name")
         )
     }
 
     suspend fun insert(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is Manufacturer -> manufacturerCollection.save(item)
-            is Order -> orderCollection.save(item)
-            is Product -> productCollection.save(item)
-            is ProductCategory -> productCategoryCollection.save(item)
-            is User -> userCollection.save(item)
+            is HotelChain -> hotelChainCollection.save(item)
+            is Hotel -> hotelCollection.save(item)
+            is Room -> roomCollection.save(item)
+            is Booking -> bookingCollection.save(item)
+            is Client -> clientCollection.save(item)
         }
     }
 
     suspend fun update(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is Manufacturer -> manufacturerCollection.updateOne(item)
-            is Order -> orderCollection.updateOne(item)
-            is Product -> productCollection.updateOne(item)
-            is ProductCategory -> productCategoryCollection.updateOne(item)
-            is User -> userCollection.updateOne(item)
+            is HotelChain -> hotelChainCollection.updateOne(item)
+            is Hotel -> hotelCollection.updateOne(item)
+            is Room -> roomCollection.updateOne(item)
+            is Booking -> bookingCollection.updateOne(item)
+            is Client -> clientCollection.updateOne(item)
         }
     }
 
     suspend fun delete(item: Identifiable<*>) = beforeUpdateTableRows {
         when (item) {
-            is Manufacturer -> manufacturerCollection.deleteOneById(requireNotNull(item.id))
-            is Order -> orderCollection.deleteOneById(requireNotNull(item.id))
-            is Product -> productCollection.deleteOneById(requireNotNull(item.id))
-            is ProductCategory -> productCategoryCollection.deleteOneById(requireNotNull(item.id))
-            is User -> userCollection.deleteOneById(requireNotNull(item.id))
+            is HotelChain -> hotelChainCollection.deleteOneById(requireNotNull(item.id))
+            is Hotel -> hotelCollection.deleteOneById(requireNotNull(item.id))
+            is Room -> roomCollection.deleteOneById(requireNotNull(item.id))
+            is Booking -> bookingCollection.deleteOneById(requireNotNull(item.id))
+            is Client -> clientCollection.deleteOneById(requireNotNull(item.id))
         }
     }
 
@@ -151,34 +146,34 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
         logger.debug { "Requested field name: $fieldName" }
 
         when (selectedCollectionClass.value) {
-            Manufacturer::class -> manageFieldSortOrder(
+            HotelChain::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = manufacturerFieldSortOrders,
-                property = Manufacturer::class.memberProperties.find { it.name == fieldName }
+                fieldSortOrders = hotelChainFieldSortOrders,
+                property = HotelChain::class.memberProperties.find { it.name == fieldName }
                     ?: throw IllegalArgumentException("Wrong field name passed.")
             )
-            Order::class -> manageFieldSortOrder(
+            Hotel::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = orderFieldSortOrders,
-                property = Order::class.memberProperties.find { it.name == fieldName }
+                fieldSortOrders = hotelFieldSortOrders,
+                property = Hotel::class.memberProperties.find { it.name == fieldName }
                     ?: throw IllegalArgumentException("Wrong field name passed.")
             )
-            Product::class -> manageFieldSortOrder(
+            Room::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = productFieldSortOrders,
-                property = Product::class.memberProperties.find { it.name == fieldName }
+                fieldSortOrders = roomFieldSortOrders,
+                property = Room::class.memberProperties.find { it.name == fieldName }
                     ?: throw IllegalArgumentException("Wrong field name passed.")
             )
-            ProductCategory::class -> manageFieldSortOrder(
+            Booking::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = productCategoryFieldSortOrders,
-                property = ProductCategory::class.memberProperties.find { it.name == fieldName }
+                fieldSortOrders = bookingFieldSortOrders,
+                property = Booking::class.memberProperties.find { it.name == fieldName }
                     ?: throw IllegalArgumentException("Wrong field name passed.")
             )
-            User::class -> manageFieldSortOrder(
+            Client::class -> manageFieldSortOrder(
                 fieldName = fieldName,
-                fieldSortOrders = userFieldSortOrders,
-                property = User::class.memberProperties.find { it.name == fieldName }
+                fieldSortOrders = clientFieldSortOrders,
+                property = Client::class.memberProperties.find { it.name == fieldName }
                     ?: throw IllegalArgumentException("Wrong field name passed.")
             )
         }
@@ -193,51 +188,53 @@ class MainScreenViewModel(viewModelScope: CoroutineScope, database: CoroutineDat
 
             _tableRows.emit(
                 when (selectedCollectionClass.value) {
-                    Manufacturer::class -> combineFindSort(
-                        manufacturerCollection,
-                        manufacturerFieldSortOrders,
+                    HotelChain::class -> combineFindSort(
+                        hotelChainCollection,
+                        hotelChainFieldSortOrders,
                         when (_selectedField.value) {
-                            Manufacturer::name.name -> Manufacturer::name regex regex
-                            Manufacturer::description.name -> Manufacturer::description regex regex
+                            HotelChain::name.name -> HotelChain::name regex regex
+                            HotelChain::description.name -> HotelChain::description regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )
-                    Order::class -> combineFindSort(
-                        orderCollection,
-                        orderFieldSortOrders,
+                    Hotel::class -> combineFindSort(
+                        hotelCollection,
+                        hotelFieldSortOrders,
                         when (_selectedField.value) {
-                            Order::items.name -> EMPTY_BSON
+                            Hotel::name.name -> Hotel::name regex regex
+                            Hotel::floorMax.name -> Hotel::floorMax regex regex
+                            Hotel::description.name -> Hotel::description regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )
-                    Product::class -> combineFindSort(
-                        productCollection,
-                        productFieldSortOrders,
+                    Room::class -> combineFindSort(
+                        roomCollection,
+                        roomFieldSortOrders,
                         when (_selectedField.value) {
-                            Product::name.name -> Product::name regex regex
-                            Product::description.name -> Product::description regex regex
-                            Product::price.name -> Product::price regex regex
-                            Product::quantity.name -> Product::quantity regex regex
+                            Room::floor.name -> Room::floor regex regex
+                            Room::number.name -> Room::number regex regex
+                            Room::description.name -> Room::description regex regex
+                            Room::guestCountMax.name -> Room::guestCountMax regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )
-                    ProductCategory::class -> combineFindSort(
-                        productCategoryCollection,
-                        productCategoryFieldSortOrders,
+                    Booking::class -> combineFindSort(
+                        bookingCollection,
+                        bookingFieldSortOrders,
                         when (_selectedField.value) {
-                            ProductCategory::name.name -> ProductCategory::name regex regex
-                            ProductCategory::description.name -> ProductCategory::description regex regex
+                            Booking::guestCount.name -> Booking::guestCount regex regex
+                            Booking::description.name -> Booking::description regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )
-                    User::class -> combineFindSort(
-                        userCollection,
-                        userFieldSortOrders,
+                    Client::class -> combineFindSort(
+                        clientCollection,
+                        clientFieldSortOrders,
                         when (_selectedField.value) {
-                            User::name.name -> User::name regex regex
-                            User::surname.name -> User::surname regex regex
-                            User::email.name -> User::email regex regex
-                            User::phoneNumber.name -> User::phoneNumber regex regex
+                            Client::sex.name -> Client::sex regex regex
+                            Client::age.name -> Client::age regex regex
+                            Client::name.name -> Client::name regex regex
+                            Client::surname.name -> Client::surname regex regex
                             else -> throw IllegalStateException("Wrong selected field name")
                         }
                     )

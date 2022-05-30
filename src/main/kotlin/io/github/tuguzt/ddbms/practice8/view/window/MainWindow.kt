@@ -213,7 +213,7 @@ private fun MainScreen(
                     items = tableRows,
                     content = { item ->
                         item::class.memberProperties
-                            .filter { it.name != "id" }
+                            .filter { !it.name.contains("id", ignoreCase = true) }
                             .forEach {
                                 column { OneLineText(text = it.getter.call(item).toString()) }
                             }

@@ -50,8 +50,8 @@ private fun BaseDialog(
 
     Dialog(
         title = "${actionText.capitalize()}e " +
-                if (identifiable != null) identifiable::class.simpleName
-                else requireNotNull(kClass).simpleName,
+            if (identifiable != null) identifiable::class.simpleName
+            else requireNotNull(kClass).simpleName,
         onCloseRequest = onCloseRequest,
         state = rememberDialogState(height = (fieldNumber * 100).dp),
     ) {
@@ -76,61 +76,61 @@ private fun Content(
 ) {
     when (identifiable) {
         // update data by data class of table
-        is User -> UserContent(
-            user = identifiable,
+        is HotelChain -> HotelChainContent(
+            hotelChain = identifiable,
             actionText = actionText,
-            onApplyToUser = onApplyToItem,
+            onApplyToHotelChain = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
-        is Manufacturer -> ManufacturerContent(
-            manufacturer = identifiable,
+        is Hotel -> HotelContent(
+            hotel = identifiable,
             actionText = actionText,
-            onApplyToManufacturer = onApplyToItem,
+            onApplyToHotel = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
-        is Order -> OrderContent(
-            order = identifiable,
+        is Room -> RoomContent(
+            room = identifiable,
             actionText = actionText,
-            onApplyToOrder = onApplyToItem,
+            onApplyToRoom = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
-        is Product -> ProductContent(
-            product = identifiable,
+        is Booking -> BookingContent(
+            booking = identifiable,
             actionText = actionText,
-            onApplyToProduct = onApplyToItem,
+            onApplyToBooking = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
-        is ProductCategory -> ProductCategoryContent(
-            category = identifiable,
+        is Client -> ClientContent(
+            client = identifiable,
             actionText = actionText,
-            onApplyToCategory = onApplyToItem,
+            onApplyToClient = onApplyToItem,
             onCloseRequest = onCloseRequest,
         )
         else -> when (kClass) {
             // create data by data class of table
-            User::class -> UserContent(
+            HotelChain::class -> HotelChainContent(
                 actionText = actionText,
-                onApplyToUser = onApplyToItem,
+                onApplyToHotelChain = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
-            Manufacturer::class -> ManufacturerContent(
+            Hotel::class -> HotelContent(
                 actionText = actionText,
-                onApplyToManufacturer = onApplyToItem,
+                onApplyToHotel = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
-            Order::class -> OrderContent(
+            Room::class -> RoomContent(
                 actionText = actionText,
-                onApplyToOrder = onApplyToItem,
+                onApplyToRoom = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
-            Product::class -> ProductContent(
+            Booking::class -> BookingContent(
                 actionText = actionText,
-                onApplyToProduct = onApplyToItem,
+                onApplyToBooking = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
-            ProductCategory::class -> ProductCategoryContent(
+            Client::class -> ClientContent(
                 actionText = actionText,
-                onApplyToCategory = onApplyToItem,
+                onApplyToClient = onApplyToItem,
                 onCloseRequest = onCloseRequest,
             )
             else -> throw IllegalArgumentException(

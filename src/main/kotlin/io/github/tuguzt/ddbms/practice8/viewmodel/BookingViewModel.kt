@@ -1,12 +1,12 @@
 package io.github.tuguzt.ddbms.practice8.viewmodel
 
-import io.github.tuguzt.ddbms.practice8.model.User
+import io.github.tuguzt.ddbms.practice8.model.Booking
 import kotlinx.coroutines.CoroutineScope
 import org.litote.kmongo.coroutine.CoroutineCollection
 
-class UserViewModel(
+class BookingViewModel(
     viewModelScope: CoroutineScope,
-    private val collection: CoroutineCollection<User>,
+    private val collection: CoroutineCollection<Booking>,
 ) : ViewModel(viewModelScope) {
-    suspend fun getAll(): List<User> = collection.find().toList()
+    suspend fun getAll(): List<Booking> = collection.find().toList()
 }
