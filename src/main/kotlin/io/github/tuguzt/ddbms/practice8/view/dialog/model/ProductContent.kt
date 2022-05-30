@@ -30,6 +30,15 @@ fun ProductContent(
     var quantity by remember { mutableStateOf(product?.quantity?.toString().orEmpty()) }
     var manufacturer: Manufacturer? by remember { mutableStateOf(null) }
 
+    var items: List<Manufacturer> by remember { mutableStateOf(listOf()) }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            items = manufacturerViewModel.getAll()
+            manufacturer = product?.manufacturerId?.let { id -> items.find { it.id == id } }
+        }
+    }
+
     @Suppress("NAME_SHADOWING")
     val onClickConfirm = {
         if (product == null) {
@@ -69,15 +78,6 @@ fun ProductContent(
             name != product.name || description != product.description || price != product.price
                     || quantity != product.quantity || manufacturer.id != product.manufacturerId
         }
-
-    var items: List<Manufacturer> by remember { mutableStateOf(listOf()) }
-
-    val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            items = manufacturerViewModel.getAll()
-        }
-    }
 
     TextFieldContainer(
         actionText = actionText,

@@ -25,6 +25,15 @@ fun OrderContent(
 ) {
     var user: User? by remember { mutableStateOf(null) }
 
+    var items: List<User> by remember { mutableStateOf(listOf()) }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            items = userViewModel.getAll()
+            user = order?.userId?.let { id -> items.find { it.id == id } }
+        }
+    }
+
     @Suppress("NAME_SHADOWING")
     val onClickConfirm = {
         if (order == null) {
@@ -48,15 +57,6 @@ fun OrderContent(
     val enabledConfirm =
         if (order == null) user != null
         else user?.id != order.userId
-
-    var items: List<User> by remember { mutableStateOf(listOf()) }
-
-    val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            items = userViewModel.getAll()
-        }
-    }
 
     TextFieldContainer(
         actionText = actionText,
